@@ -154,9 +154,18 @@ export function Navbar() {
                   </div>
                 </>
               ) : (
-                <Button onClick={login} className="font-semibold shadow-sm shadow-primary/20">
-                  Sign In
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Link href="/login">
+                    <Button variant="outline" size="sm" className="font-semibold">
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button size="sm" className="font-semibold shadow-sm shadow-primary/20">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
               )}
             </div>
           </nav>
@@ -219,10 +228,13 @@ export function Navbar() {
                 </button>
               </div>
             ) : (
-              <div className="px-2">
-                <Button onClick={login} className="w-full">
-                  Sign In / Register
-                </Button>
+              <div className="px-2 flex flex-col gap-2">
+                <Link href="/login">
+                  <Button variant="outline" className="w-full font-semibold">Log In</Button>
+                </Link>
+                <Link href="/register">
+                  <Button className="w-full font-semibold">Sign Up</Button>
+                </Link>
               </div>
             )}
           </div>
