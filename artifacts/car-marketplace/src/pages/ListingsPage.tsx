@@ -11,7 +11,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 
 function ListingsPageInner() {
-  const searchParams = useSearchParams();
+  const rawSearchParams = useSearchParams();
+  const searchParams = rawSearchParams ?? new URLSearchParams();
 
   const [make, setMake] = useState(searchParams.get("make") || "");
   const [model, setModel] = useState(searchParams.get("model") || "");

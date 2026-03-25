@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Mail, Phone, ArrowLeft, User, MessageSquare } from "lucide-react";
 
 export default function ReceivedInquiriesPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const id = params?.id ?? "";
   const { user, isAuthenticated } = useAuth();
 
   const { data: listing, isLoading: listingLoading } = useGetListing(id);

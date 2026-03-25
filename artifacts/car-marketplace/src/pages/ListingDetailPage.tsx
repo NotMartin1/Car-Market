@@ -14,7 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 
 export default function ListingDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const id = params?.id ?? "";
   const { data: listing, isLoading, error } = useGetListing(id);
   const { isAuthenticated, user, login } = useAuth();
   const { toast } = useToast();

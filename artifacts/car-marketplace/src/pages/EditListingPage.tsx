@@ -12,7 +12,8 @@ import { useState, useEffect } from "react";
 import React from "react";
 
 export default function EditListingPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const id = params?.id ?? "";
   const router = useRouter();
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
