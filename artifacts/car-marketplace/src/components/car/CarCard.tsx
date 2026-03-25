@@ -1,6 +1,6 @@
 "use client";
 
-import type { Listing } from "@workspace/api-client-react";
+import type { MockListing } from "@/lib/mock-data";
 import Link from "next/link";
 import { MapPin, Fuel, Gauge, CheckCircle2, Car, Bike, Truck, Bus, Ship } from "lucide-react";
 import { formatPrice, formatMileage } from "@/lib/utils";
@@ -28,7 +28,7 @@ const vehicleTypeLabel: Record<string, string> = {
   other: "Other",
 };
 
-export function CarCard({ listing }: { listing: Listing }) {
+export function CarCard({ listing }: { listing: MockListing }) {
   const mainImage = listing.images?.[0] || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80";
   const vType = listing.vehicleType ?? "car";
 

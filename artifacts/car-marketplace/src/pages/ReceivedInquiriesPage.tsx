@@ -1,23 +1,47 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useGetListing, useGetListingInquiries } from "@workspace/api-client-react";
-import { useAuth } from "@workspace/replit-auth-web";
+import { getListing, getListingInquiries } from "@/lib/mock-api";
+import { useMockAuth } from "@/contexts/mock-auth-context";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, ArrowLeft, User, MessageSquare } from "lucide-react";
+import type { MockListing } from "@/lib/mock-data";
+
+interface EnrichedInquiry {
+  id: string;
+  listingId: string;
+  senderId: string;
+  senderFirstName: string | null;
+  senderLastName: string | null;
+  senderUsername: string | null;
+  message: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  createdAt: string;
+}
 
 export default function ReceivedInquiriesPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useMockAuth();
 
-  const { data: listing, isLoading: listingLoading } = useGetListing(id);
-  const { data: inquiries, isLoading: inquiriesLoading } = useGetListingInquiries(id);
+  const [listing, setListing] = useState<MockListing | null>(null);
+  const [inquiries, setInquiries] = useState<EnrichedInquiry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const isLoading = listingLoading || inquiriesLoading;
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    Promise.all([getListing(id), getListingInquiries(id)])
+      .then(([listingData, inquiriesData]) => {
+        setListing(listingData as MockListing);
+        setInquiries(inquiriesData.inquiries as EnrichedInquiry[]);
+      })
+      .finally(() => setIsLoading(false));
+  }, [id, isAuthenticated]);
 
   if (!isAuthenticated) {
     return (
@@ -60,8 +84,6 @@ export default function ReceivedInquiriesPage() {
     );
   }
 
-  const inquiryList = inquiries?.inquiries ?? [];
-
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -79,11 +101,11 @@ export default function ReceivedInquiriesPage() {
             </p>
           </div>
           <Badge variant="secondary" className="text-base px-4 py-2">
-            {inquiryList.length} {inquiryList.length === 1 ? "inquiry" : "inquiries"}
+            {inquiries.length} {inquiries.length === 1 ? "inquiry" : "inquiries"}
           </Badge>
         </div>
 
-        {inquiryList.length === 0 ? (
+        {inquiries.length === 0 ? (
           <div className="text-center py-20 bg-card rounded-3xl border border-dashed border-border">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <MessageSquare className="w-7 h-7 text-muted-foreground" />
@@ -95,8 +117,11 @@ export default function ReceivedInquiriesPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {inquiryList.map((inquiry) => (
-              <div key={inquiry.id} className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+            {inquiries.map((inquiry) => (
+              <div
+                key={inquiry.id}
+                className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">

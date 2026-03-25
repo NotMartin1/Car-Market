@@ -2,30 +2,30 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useGetListing, useUpdateListing } from "@workspace/api-client-react";
-import type { UpdateListingBodyFuelType, UpdateListingBodyTransmission } from "@workspace/api-client-react";
+import { getListing, updateListing } from "@/lib/mock-api";
+import { useMockAuth } from "@/contexts/mock-auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@workspace/replit-auth-web";
 import { useState, useEffect } from "react";
-import React from "react";
+import type { MockListing } from "@/lib/mock-data";
 
 export default function EditListingPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
   const router = useRouter();
   const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useMockAuth();
 
-  const { data: listing, isLoading } = useGetListing(id);
-  const { mutateAsync: updateListing, isPending } = useUpdateListing();
+  const [listing, setListing] = useState<MockListing | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPending, setIsPending] = useState(false);
 
   const [formData, setFormData] = useState({
     make: "",
     model: "",
     year: new Date().getFullYear(),
-    price: 0,
+    price: "0",
     mileage: 0,
     description: "",
     location: "",
@@ -39,65 +39,59 @@ export default function EditListingPage() {
   });
 
   useEffect(() => {
-    if (listing) {
-      setFormData({
-        make: listing.make,
-        model: listing.model,
-        year: listing.year,
-        price: listing.price,
-        mileage: listing.mileage,
-        description: listing.description ?? "",
-        location: listing.location ?? "",
-        condition: (listing.condition as "excellent" | "good" | "fair" | "poor") ?? "good",
-        fuelType: listing.fuelType ?? "",
-        transmission: listing.transmission ?? "",
-        bodyType: listing.bodyType ?? "",
-        color: listing.color ?? "",
-        vehicleType: (listing.vehicleType as "car" | "motorcycle" | "truck" | "van" | "suv" | "rv" | "boat" | "other") ?? "car",
-        images: listing.images?.length ? listing.images : [""],
-      });
-    }
-  }, [listing]);
+    getListing(id)
+      .then((data) => {
+        const l = data as MockListing;
+        setListing(l);
+        setFormData({
+          make: l.make,
+          model: l.model,
+          year: l.year,
+          price: l.price,
+          mileage: l.mileage,
+          description: l.description ?? "",
+          location: l.location ?? "",
+          condition: l.condition,
+          fuelType: l.fuelType ?? "",
+          transmission: l.transmission ?? "",
+          bodyType: l.bodyType ?? "",
+          color: l.color ?? "",
+          vehicleType: l.vehicleType,
+          images: l.images?.length ? l.images : [""],
+        });
+      })
+      .finally(() => setIsLoading(false));
+  }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === "number" ? Number(value) : value,
     }));
   };
 
   const handleImageChange = (index: number, value: string) => {
-    const newImages = [...(formData.images || [])];
+    const newImages = [...formData.images];
     newImages[index] = value;
     setFormData({ ...formData, images: newImages });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsPending(true);
     try {
-      const cleanedData = {
-        make: formData.make,
-        model: formData.model,
-        year: formData.year,
-        price: formData.price,
-        mileage: formData.mileage,
-        description: formData.description || undefined,
-        location: formData.location || undefined,
-        condition: formData.condition,
-        vehicleType: formData.vehicleType,
-        fuelType: (formData.fuelType || undefined) as UpdateListingBodyFuelType | undefined,
-        transmission: (formData.transmission || undefined) as UpdateListingBodyTransmission | undefined,
-        bodyType: formData.bodyType || undefined,
-        color: formData.color || undefined,
-        images: formData.images.filter(img => img.trim() !== ""),
-      };
-      await updateListing({ id, data: cleanedData });
+      await updateListing(id, {
+        ...formData,
+        images: formData.images.filter((img) => img.trim() !== ""),
+      });
       toast({ title: "Listing updated!", description: "Your listing has been saved." });
       router.push("/my-listings");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       toast({ title: "Error updating listing", description: message, variant: "destructive" });
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -132,7 +126,8 @@ export default function EditListingPage() {
     );
   }
 
-  const inputClass = "w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all";
+  const inputClass =
+    "w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all";
   const selectClass = inputClass + " appearance-none";
 
   return (
@@ -149,7 +144,13 @@ export default function EditListingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Vehicle Type *</label>
-                <select className={selectClass} name="vehicleType" value={formData.vehicleType} onChange={handleChange} required>
+                <select
+                  className={selectClass}
+                  name="vehicleType"
+                  value={formData.vehicleType}
+                  onChange={handleChange}
+                  required
+                >
                   <option value="car">Car</option>
                   <option value="suv">SUV</option>
                   <option value="truck">Truck</option>
@@ -162,27 +163,72 @@ export default function EditListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Make *</label>
-                <Input className={inputClass} name="make" value={formData.make} onChange={handleChange} required placeholder="e.g. Toyota" />
+                <Input
+                  className={inputClass}
+                  name="make"
+                  value={formData.make}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. Toyota"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Model *</label>
-                <Input className={inputClass} name="model" value={formData.model} onChange={handleChange} required placeholder="e.g. Camry" />
+                <Input
+                  className={inputClass}
+                  name="model"
+                  value={formData.model}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. Camry"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Year *</label>
-                <Input className={inputClass} name="year" type="number" value={formData.year} onChange={handleChange} required min={1900} max={new Date().getFullYear() + 1} />
+                <Input
+                  className={inputClass}
+                  name="year"
+                  type="number"
+                  value={formData.year}
+                  onChange={handleChange}
+                  required
+                  min={1900}
+                  max={new Date().getFullYear() + 1}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price ($) *</label>
-                <Input className={inputClass} name="price" type="number" value={formData.price} onChange={handleChange} required min={0} />
+                <Input
+                  className={inputClass}
+                  name="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={handleChange}
+                  required
+                  min={0}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Mileage *</label>
-                <Input className={inputClass} name="mileage" type="number" value={formData.mileage} onChange={handleChange} required min={0} />
+                <Input
+                  className={inputClass}
+                  name="mileage"
+                  type="number"
+                  value={formData.mileage}
+                  onChange={handleChange}
+                  required
+                  min={0}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Condition *</label>
-                <select className={selectClass} name="condition" value={formData.condition} onChange={handleChange} required>
+                <select
+                  className={selectClass}
+                  name="condition"
+                  value={formData.condition}
+                  onChange={handleChange}
+                  required
+                >
                   <option value="excellent">Excellent</option>
                   <option value="good">Good</option>
                   <option value="fair">Fair</option>
@@ -191,11 +237,23 @@ export default function EditListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Location *</label>
-                <Input className={inputClass} name="location" value={formData.location} onChange={handleChange} required placeholder="e.g. Austin, TX" />
+                <Input
+                  className={inputClass}
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. Austin, TX"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Fuel Type</label>
-                <select className={selectClass} name="fuelType" value={formData.fuelType} onChange={handleChange}>
+                <select
+                  className={selectClass}
+                  name="fuelType"
+                  value={formData.fuelType}
+                  onChange={handleChange}
+                >
                   <option value="">Select fuel type</option>
                   <option value="gasoline">Gasoline</option>
                   <option value="diesel">Diesel</option>
@@ -205,7 +263,12 @@ export default function EditListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Transmission</label>
-                <select className={selectClass} name="transmission" value={formData.transmission} onChange={handleChange}>
+                <select
+                  className={selectClass}
+                  name="transmission"
+                  value={formData.transmission}
+                  onChange={handleChange}
+                >
                   <option value="">Select transmission</option>
                   <option value="automatic">Automatic</option>
                   <option value="manual">Manual</option>
@@ -213,11 +276,23 @@ export default function EditListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Body Type</label>
-                <Input className={inputClass} name="bodyType" value={formData.bodyType} onChange={handleChange} placeholder="e.g. Sedan" />
+                <Input
+                  className={inputClass}
+                  name="bodyType"
+                  value={formData.bodyType}
+                  onChange={handleChange}
+                  placeholder="e.g. Sedan"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Color</label>
-                <Input className={inputClass} name="color" value={formData.color} onChange={handleChange} placeholder="e.g. Silver" />
+                <Input
+                  className={inputClass}
+                  name="color"
+                  value={formData.color}
+                  onChange={handleChange}
+                  placeholder="e.g. Silver"
+                />
               </div>
             </div>
           </div>
@@ -227,7 +302,7 @@ export default function EditListingPage() {
             <textarea
               required
               name="description"
-              onChange={(e) => handleChange(e)}
+              onChange={handleChange}
               value={formData.description}
               placeholder="Tell buyers about your vehicle..."
               className="w-full min-h-[160px] rounded-xl border-2 border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 resize-y"
@@ -246,15 +321,26 @@ export default function EditListingPage() {
                     onChange={(e) => handleImageChange(i, e.target.value)}
                   />
                   {formData.images.length > 1 && (
-                    <Button type="button" variant="outline" size="icon" onClick={() => {
-                      const newImages = formData.images.filter((_, idx) => idx !== i);
-                      setFormData({ ...formData, images: newImages.length ? newImages : [""] });
-                    }}>×</Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const newImages = formData.images.filter((_, idx) => idx !== i);
+                        setFormData({ ...formData, images: newImages.length ? newImages : [""] });
+                      }}
+                    >
+                      ×
+                    </Button>
                   )}
                 </div>
               ))}
               {formData.images.length < 10 && (
-                <Button type="button" variant="outline" onClick={() => setFormData({ ...formData, images: [...formData.images, ""] })}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setFormData({ ...formData, images: [...formData.images, ""] })}
+                >
                   + Add another photo
                 </Button>
               )}

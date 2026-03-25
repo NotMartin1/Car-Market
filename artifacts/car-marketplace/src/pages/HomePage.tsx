@@ -5,17 +5,23 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CarCard } from "@/components/car/CarCard";
-import { useListListings } from "@workspace/api-client-react";
+import { getListings } from "@/lib/mock-api";
 import { Search, ChevronRight, ShieldCheck, Car as CarIcon, DollarSign } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import type { MockListing } from "@/lib/mock-data";
 
 export default function HomePage() {
   const router = useRouter();
   const [searchMake, setSearchMake] = useState("");
-  
-  // Fetch a few recent listings for featured section
-  const { data, isLoading } = useListListings({ limit: 6, status: "active" });
+  const [listings, setListings] = useState<MockListing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getListings({ limit: 6, status: "active" })
+      .then((res) => setListings(res.listings))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,14 +36,12 @@ export default function HomePage() {
     <AppLayout>
       {/* HERO SECTION */}
       <section className="relative min-h-[85vh] flex items-center pt-20 pb-32 overflow-hidden">
-        {/* Abstract dark navy background image with light leaks */}
         <div className="absolute inset-0 z-0">
-          <img 
+          <img
             src="/images/hero-bg.png"
             alt="Premium automotive background"
             className="w-full h-full object-cover"
           />
-          {/* Gradient overlay to ensure text readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#2d1a00]/92 via-[#1a0e00]/78 to-transparent" />
         </div>
 
@@ -48,17 +52,21 @@ export default function HomePage() {
               Trusted by 10,000+ buyers
             </div>
             <h1 className="text-5xl lg:text-7xl font-display font-bold text-white tracking-tight leading-tight mb-6 text-balance">
-              Find Your Next <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#dfae2d] to-[#f1c85b]">Dream Vehicle</span> Today.
+              Find Your Next{" "}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#dfae2d] to-[#f1c85b]">
+                Dream Vehicle
+              </span>{" "}
+              Today.
             </h1>
             <p className="text-lg text-white/75 max-w-2xl mx-auto lg:mx-0 mb-10 text-balance">
-              Browse thousands of premium used vehicles — cars, trucks, motorcycles & more. No hidden fees, just honest deals.
+              Browse thousands of premium used vehicles — cars, trucks, motorcycles & more. No hidden fees, just honest
+              deals.
             </p>
 
-            {/* Quick Search Box */}
             <div className="bg-background/10 backdrop-blur-xl p-3 rounded-2xl border border-white/10 max-w-xl mx-auto lg:mx-0 shadow-2xl">
               <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-                <Input 
-                  placeholder="Search makes (e.g. Toyota, BMW)..." 
+                <Input
+                  placeholder="Search makes (e.g. Toyota, BMW)..."
                   value={searchMake}
                   onChange={(e) => setSearchMake(e.target.value)}
                   className="bg-background text-foreground h-14 border-0 text-lg placeholder:text-muted-foreground/70"
@@ -70,10 +78,9 @@ export default function HomePage() {
               </form>
             </div>
           </div>
-          
+
           <div className="flex-1 hidden lg:block relative">
-             {/* decorative element for balance */}
-             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 bg-accent/20 rounded-full blur-[100px]" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 bg-accent/20 rounded-full blur-[100px]" />
           </div>
         </div>
       </section>
@@ -83,11 +90,26 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: ShieldCheck, title: "Verified Sellers", desc: "Every seller is authenticated to ensure a safe buying experience." },
-              { icon: CarIcon, title: "Vast Selection", desc: "Cars, trucks, motorcycles, boats & more — added weekly across all price ranges." },
-              { icon: DollarSign, title: "No Hidden Fees", desc: "Negotiate directly with sellers. We don't take a cut of the sale." }
+              {
+                icon: ShieldCheck,
+                title: "Verified Sellers",
+                desc: "Every seller is authenticated to ensure a safe buying experience.",
+              },
+              {
+                icon: CarIcon,
+                title: "Vast Selection",
+                desc: "Cars, trucks, motorcycles, boats & more — added weekly across all price ranges.",
+              },
+              {
+                icon: DollarSign,
+                title: "No Hidden Fees",
+                desc: "Negotiate directly with sellers. We don't take a cut of the sale.",
+              },
             ].map((feature, i) => (
-              <div key={i} className="bg-card p-8 rounded-3xl border border-border shadow-sm hover:shadow-md transition-shadow">
+              <div
+                key={i}
+                className="bg-card p-8 rounded-3xl border border-border shadow-sm hover:shadow-md transition-shadow"
+              >
                 <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center text-accent mb-6">
                   <feature.icon className="w-7 h-7" />
                 </div>
@@ -120,9 +142,9 @@ export default function HomePage() {
                 <div key={i} className="h-[400px] bg-card animate-pulse rounded-2xl border border-border" />
               ))}
             </div>
-          ) : data?.listings && data.listings.length > 0 ? (
+          ) : listings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {data.listings.map((listing) => (
+              {listings.map((listing) => (
                 <CarCard key={listing.id} listing={listing} />
               ))}
             </div>
@@ -136,11 +158,13 @@ export default function HomePage() {
               </Link>
             </div>
           )}
-          
+
           <div className="mt-10 sm:hidden text-center">
-             <Link href="/listings">
-                <Button variant="outline" className="w-full">View All Cars</Button>
-             </Link>
+            <Link href="/listings">
+              <Button variant="outline" className="w-full">
+                View All Cars
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

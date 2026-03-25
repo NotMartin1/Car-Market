@@ -3,103 +3,77 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@workspace/replit-auth-web";
+import { useMockAuth } from "@/contexts/mock-auth-context";
+import { getConversation, sendMessage } from "@/lib/mock-api";
 import { formatDistanceToNow, format } from "date-fns";
 import { ArrowLeft, Send, Car, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-
-interface MessageItem {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  content: string;
-  readAt: string | null;
-  createdAt: string;
-}
+import type { MockUser, MockListing, MockMessage } from "@/lib/mock-data";
 
 interface ChatData {
   conversation: { id: string; listingId: string; buyerId: string; sellerId: string };
-  listing: { id: string; make: string; model: string; year: number; price: string; images: string[]; status: string; sellerId: string } | null;
-  buyer: UserProfile | null;
-  seller: UserProfile | null;
-  messages: MessageItem[];
+  listing: MockListing | null;
+  buyer: MockUser | null;
+  seller: MockUser | null;
+  messages: MockMessage[];
   currentUserId: string;
 }
 
-interface UserProfile {
-  id: string;
-  username: string | null;
-  firstName: string | null;
-  lastName: string | null;
-  profileImageUrl: string | null;
-}
-
-function getDisplayName(user: UserProfile | null): string {
+function getDisplayName(user: MockUser | null): string {
   if (!user) return "User";
-  if (user.firstName || user.lastName) return [user.firstName, user.lastName].filter(Boolean).join(" ");
-  return user.username ?? "User";
+  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username;
 }
 
-function getInitials(user: UserProfile | null): string {
-  return getDisplayName(user).split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+function getInitials(user: MockUser | null): string {
+  return getDisplayName(user)
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 export default function ChatPage({ conversationId }: { conversationId: string }) {
   const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
+  const { isAuthenticated } = useMockAuth();
   const [data, setData] = useState<ChatData | null>(null);
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchData = async () => {
-    const res = await fetch(`/api/conversations/${conversationId}`);
-    if (res.ok) {
-      const json = await res.json();
-      setData(json);
-    } else if (res.status === 404) {
-      router.push("/messages");
-    }
-    setLoading(false);
+  const fetchData = () => {
+    getConversation(conversationId)
+      .then((res) => setData(res as ChatData))
+      .catch(() => router.push("/messages"))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!isAuthenticated) {
       router.push("/");
       return;
     }
-    if (user) {
-      fetchData();
-      pollRef.current = setInterval(fetchData, 5000);
-    }
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [user, authLoading, conversationId]);
+    fetchData();
+  }, [isAuthenticated, conversationId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data?.messages]);
 
-  const sendMessage = async () => {
+  const handleSend = async () => {
     if (!inputValue.trim() || sending) return;
     setSending(true);
     const content = inputValue.trim();
     setInputValue("");
     try {
-      const res = await fetch(`/api/conversations/${conversationId}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-      if (res.ok) {
-        await fetchData();
-      } else {
-        setInputValue(content);
-      }
+      await sendMessage(conversationId, content);
+      fetchData();
+    } catch {
+      setInputValue(content);
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -109,11 +83,11 @@ export default function ChatPage({ conversationId }: { conversationId: string })
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleSend();
     }
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="animate-pulse space-y-4">
@@ -132,7 +106,7 @@ export default function ChatPage({ conversationId }: { conversationId: string })
   const listingTitle = listing ? `${listing.year} ${listing.make} ${listing.model}` : "Listing";
   const thumb = listing?.images?.[0];
 
-  const groupedMessages: Array<{ date: string; msgs: MessageItem[] }> = [];
+  const groupedMessages: Array<{ date: string; msgs: MockMessage[] }> = [];
   messages.forEach((m) => {
     const day = format(new Date(m.createdAt), "MMMM d, yyyy");
     const last = groupedMessages[groupedMessages.length - 1];
@@ -145,6 +119,7 @@ export default function ChatPage({ conversationId }: { conversationId: string })
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-4 flex flex-col h-[calc(100vh-5rem)]">
+      {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <Link href="/messages">
           <Button variant="ghost" size="icon" className="rounded-xl">
@@ -157,12 +132,13 @@ export default function ChatPage({ conversationId }: { conversationId: string })
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-foreground">{getDisplayName(otherUser)}</p>
-          <p className="text-sm text-muted-foreground truncate">
+          <p className="text-sm text-muted-foreground">
             {currentUserId === conversation.buyerId ? "Seller" : "Buyer"}
           </p>
         </div>
       </div>
 
+      {/* Listing card */}
       {listing && (
         <Link
           href={`/listings/${listing.id}`}
@@ -176,23 +152,32 @@ export default function ChatPage({ conversationId }: { conversationId: string })
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">{listingTitle}</p>
+            <p className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+              {listingTitle}
+            </p>
             <div className="flex items-center gap-2 mt-0.5">
               <DollarSign className="w-3.5 h-3.5 text-primary" />
               <span className="text-sm font-medium text-primary">
                 {Number(listing.price).toLocaleString()}
               </span>
-              {listing.status === "sold" && <Badge variant="secondary" className="text-xs">Sold</Badge>}
+              {listing.status === "sold" && (
+                <Badge variant="secondary" className="text-xs">
+                  Sold
+                </Badge>
+              )}
             </div>
           </div>
         </Link>
       )}
 
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
         {messages.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            <MessageSquarePlaceholder />
-            <p className="mt-3 text-sm">No messages yet. Say hello!</p>
+            <div className="w-14 h-14 mx-auto rounded-full bg-muted flex items-center justify-center mb-3">
+              <Send className="w-6 h-6 text-muted-foreground/50" />
+            </div>
+            <p className="text-sm">No messages yet. Say hello!</p>
           </div>
         )}
 
@@ -237,6 +222,7 @@ export default function ChatPage({ conversationId }: { conversationId: string })
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Input */}
       <div className="shrink-0 border-t border-border pt-4">
         <div className="flex items-end gap-2">
           <textarea
@@ -247,7 +233,6 @@ export default function ChatPage({ conversationId }: { conversationId: string })
             placeholder="Type a message…"
             rows={1}
             className="flex-1 resize-none bg-muted rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 max-h-32 overflow-y-auto"
-            style={{ height: "auto" }}
             onInput={(e) => {
               const el = e.currentTarget;
               el.style.height = "auto";
@@ -255,23 +240,17 @@ export default function ChatPage({ conversationId }: { conversationId: string })
             }}
           />
           <Button
-            onClick={sendMessage}
+            onClick={handleSend}
             disabled={!inputValue.trim() || sending}
             className="rounded-2xl px-4 py-3 h-auto shrink-0"
           >
             <Send className="w-4 h-4" />
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-2 text-center">Enter to send · Shift+Enter for new line</p>
+        <p className="text-[11px] text-muted-foreground mt-2 text-center">
+          Enter to send · Shift+Enter for new line
+        </p>
       </div>
-    </div>
-  );
-}
-
-function MessageSquarePlaceholder() {
-  return (
-    <div className="w-14 h-14 mx-auto rounded-full bg-muted flex items-center justify-center">
-      <Send className="w-6 h-6 text-muted-foreground/50" />
     </div>
   );
 }

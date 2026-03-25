@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@workspace/replit-auth-web";
+import { useMockAuth } from "@/contexts/mock-auth-context";
+import { getConversations } from "@/lib/mock-api";
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare, Car, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import type { MockUser, MockListing, MockMessage } from "@/lib/mock-data";
+import { CURRENT_USER } from "@/lib/mock-data";
 
 interface ConversationSummary {
   id: string;
@@ -15,42 +18,43 @@ interface ConversationSummary {
   buyerId: string;
   sellerId: string;
   updatedAt: string;
-  listing: { id: string; make: string; model: string; year: number; images: string[]; status: string } | null;
-  buyer: { id: string; username: string | null; firstName: string | null; lastName: string | null; profileImageUrl: string | null } | null;
-  lastMessage: { conversationId: string; content: string; senderId: string; createdAt: string } | null;
+  listing: MockListing | null;
+  buyer: MockUser | null;
+  seller: MockUser | null;
+  lastMessage: MockMessage | null;
 }
 
-function getDisplayName(user: { username: string | null; firstName: string | null; lastName: string | null } | null): string {
+function getDisplayName(user: MockUser | null): string {
   if (!user) return "Unknown";
-  if (user.firstName || user.lastName) return [user.firstName, user.lastName].filter(Boolean).join(" ");
-  return user.username ?? "User";
+  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username;
 }
 
-function getInitials(user: { username: string | null; firstName: string | null; lastName: string | null } | null): string {
-  const name = getDisplayName(user);
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+function getInitials(user: MockUser | null): string {
+  return getDisplayName(user)
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 export default function MessagesPage() {
   const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated } = useMockAuth();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!isAuthenticated) {
       router.push("/");
       return;
     }
-    if (user) {
-      fetch("/api/conversations")
-        .then((r) => r.json())
-        .then((data) => setConversations(data.conversations ?? []))
-        .finally(() => setLoading(false));
-    }
-  }, [user, authLoading, router]);
+    getConversations()
+      .then((data) => setConversations(data.conversations as ConversationSummary[]))
+      .finally(() => setLoading(false));
+  }, [isAuthenticated, router]);
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="space-y-3">
@@ -73,7 +77,9 @@ export default function MessagesPage() {
         <div className="text-center py-20">
           <MessageSquare className="w-16 h-16 mx-auto text-muted-foreground/40 mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">No conversations yet</h2>
-          <p className="text-muted-foreground mb-6">When you message a seller or receive inquiries, they'll appear here.</p>
+          <p className="text-muted-foreground mb-6">
+            When you message a seller or receive inquiries, they'll appear here.
+          </p>
           <Link
             href="/listings"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:bg-primary/90 transition-colors"
@@ -85,9 +91,9 @@ export default function MessagesPage() {
       ) : (
         <div className="space-y-2">
           {conversations.map((conv) => {
-            const isBuyer = conv.buyerId === user?.id;
-            const otherUser = isBuyer ? null : conv.buyer;
-            const otherLabel = isBuyer ? "Seller" : "Buyer";
+            const iAmBuyer = conv.buyerId === CURRENT_USER.id;
+            const otherUser = iAmBuyer ? conv.seller : conv.buyer;
+            const otherLabel = iAmBuyer ? "Seller" : "Buyer";
             const listingTitle = conv.listing
               ? `${conv.listing.year} ${conv.listing.make} ${conv.listing.model}`
               : "Unknown Listing";
@@ -111,7 +117,9 @@ export default function MessagesPage() {
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="font-semibold text-foreground truncate">{listingTitle}</span>
                     {conv.listing?.status === "sold" && (
-                      <Badge variant="secondary" className="text-xs shrink-0">Sold</Badge>
+                      <Badge variant="secondary" className="text-xs shrink-0">
+                        Sold
+                      </Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mb-1">

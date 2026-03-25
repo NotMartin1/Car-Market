@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useListListings, ListListingsCondition, ListListingsVehicleType } from "@workspace/api-client-react";
+import { getListings } from "@/lib/mock-api";
+import type { MockListing } from "@/lib/mock-data";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CarCard } from "@/components/car/CarCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Filter, SlidersHorizontal, X, Search } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
+
+type VehicleType = "car" | "suv" | "truck" | "motorcycle" | "van" | "rv" | "boat" | "other" | "";
+type Condition = "excellent" | "good" | "fair" | "poor" | "";
 
 function ListingsPageInner() {
   const rawSearchParams = useSearchParams();
@@ -20,53 +23,37 @@ function ListingsPageInner() {
   const [yearMax, setYearMax] = useState(searchParams.get("yearMax") || "");
   const [priceMin, setPriceMin] = useState(searchParams.get("priceMin") || "");
   const [priceMax, setPriceMax] = useState(searchParams.get("priceMax") || "");
-  const [mileageMax, setMileageMax] = useState(searchParams.get("mileageMax") || "");
   const [location, setLocation] = useState(searchParams.get("location") || "");
-  const [condition, setCondition] = useState<ListListingsCondition | "">(
-    (searchParams.get("condition") as ListListingsCondition) || ""
-  );
-  const [vehicleType, setVehicleType] = useState<ListListingsVehicleType | "">(
-    (searchParams.get("vehicleType") as ListListingsVehicleType) || ""
+  const [condition, setCondition] = useState<Condition>((searchParams.get("condition") as Condition) || "");
+  const [vehicleType, setVehicleType] = useState<VehicleType>(
+    (searchParams.get("vehicleType") as VehicleType) || "",
   );
 
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-
-  const [debouncedFilters, setDebouncedFilters] = useState({
-    make,
-    model,
-    yearMin: yearMin ? Number(yearMin) : undefined,
-    yearMax: yearMax ? Number(yearMax) : undefined,
-    priceMin: priceMin ? Number(priceMin) : undefined,
-    priceMax: priceMax ? Number(priceMax) : undefined,
-    mileageMax: mileageMax ? Number(mileageMax) : undefined,
-    location: location.trim() || undefined,
-    condition: condition || undefined,
-    vehicleType: vehicleType || undefined,
-  });
+  const [listings, setListings] = useState<MockListing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedFilters({
-        make: make.trim(),
-        model: model.trim(),
+      setIsLoading(true);
+      getListings({
+        make: make.trim() || undefined,
+        model: model.trim() || undefined,
         yearMin: yearMin ? Number(yearMin) : undefined,
         yearMax: yearMax ? Number(yearMax) : undefined,
-        priceMin: priceMin ? Number(priceMin) : undefined,
-        priceMax: priceMax ? Number(priceMax) : undefined,
-        mileageMax: mileageMax ? Number(mileageMax) : undefined,
+        minPrice: priceMin ? Number(priceMin) : undefined,
+        maxPrice: priceMax ? Number(priceMax) : undefined,
         location: location.trim() || undefined,
         condition: condition || undefined,
         vehicleType: vehicleType || undefined,
-      });
-    }, 500);
+        status: "active",
+        limit: 50,
+      })
+        .then((res) => setListings(res.listings))
+        .finally(() => setIsLoading(false));
+    }, 400);
     return () => clearTimeout(timer);
-  }, [make, model, yearMin, yearMax, priceMin, priceMax, mileageMax, location, condition, vehicleType]);
-
-  const { data, isLoading } = useListListings({
-    ...debouncedFilters,
-    status: "active",
-    limit: 50,
-  });
+  }, [make, model, yearMin, yearMax, priceMin, priceMax, location, condition, vehicleType]);
 
   const clearFilters = () => {
     setMake("");
@@ -75,13 +62,13 @@ function ListingsPageInner() {
     setYearMax("");
     setPriceMin("");
     setPriceMax("");
-    setMileageMax("");
     setLocation("");
     setCondition("");
     setVehicleType("");
   };
 
-  const selectClass = "w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none";
+  const selectClass =
+    "w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none";
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -100,7 +87,7 @@ function ListingsPageInner() {
           <select
             className={selectClass}
             value={vehicleType}
-            onChange={(e) => setVehicleType(e.target.value as ListListingsVehicleType | "")}
+            onChange={(e) => setVehicleType(e.target.value as VehicleType)}
           >
             <option value="">All Types</option>
             <option value="car">Car</option>
@@ -116,29 +103,17 @@ function ListingsPageInner() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Location</label>
-          <Input
-            placeholder="e.g. Denver, CO"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
+          <Input placeholder="e.g. Denver, CO" value={location} onChange={(e) => setLocation(e.target.value)} />
         </div>
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Make</label>
-          <Input
-            placeholder="e.g. Honda"
-            value={make}
-            onChange={(e) => setMake(e.target.value)}
-          />
+          <Input placeholder="e.g. Honda" value={make} onChange={(e) => setMake(e.target.value)} />
         </div>
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Model</label>
-          <Input
-            placeholder="e.g. Civic"
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-          />
+          <Input placeholder="e.g. Civic" value={model} onChange={(e) => setModel(e.target.value)} />
         </div>
 
         <div className="space-y-2">
@@ -178,21 +153,11 @@ function ListingsPageInner() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Max Mileage</label>
-          <Input
-            type="number"
-            placeholder="e.g. 50000"
-            value={mileageMax}
-            onChange={(e) => setMileageMax(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Condition</label>
           <select
             className={selectClass}
             value={condition}
-            onChange={(e) => setCondition(e.target.value as ListListingsCondition | "")}
+            onChange={(e) => setCondition(e.target.value as Condition)}
           >
             <option value="">Any Condition</option>
             <option value="excellent">Excellent</option>
@@ -217,10 +182,9 @@ function ListingsPageInner() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col lg:flex-row gap-8 items-start">
-
         {/* Mobile Filter Button */}
         <div className="w-full lg:hidden flex justify-between items-center bg-card p-4 rounded-xl border border-border shadow-sm">
-          <span className="font-medium text-foreground">{data?.total || 0} results found</span>
+          <span className="font-medium text-foreground">{listings.length} results found</span>
           <Button variant="outline" onClick={() => setIsMobileFiltersOpen(true)} className="gap-2">
             <SlidersHorizontal className="w-4 h-4" /> Filters
           </Button>
@@ -232,32 +196,25 @@ function ListingsPageInner() {
         </aside>
 
         {/* Mobile Filter Drawer */}
-        <AnimatePresence>
-          {isMobileFiltersOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 z-50 lg:hidden backdrop-blur-sm"
-                onClick={() => setIsMobileFiltersOpen(false)}
-              />
-              <motion.div
-                initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="fixed inset-y-0 right-0 w-full max-w-sm bg-background p-6 z-50 shadow-2xl lg:hidden overflow-y-auto"
-              >
-                <div className="flex justify-end mb-6">
-                  <Button variant="ghost" size="icon" onClick={() => setIsMobileFiltersOpen(false)}>
-                    <X className="w-6 h-6" />
-                  </Button>
-                </div>
-                <FilterContent />
-                <Button className="w-full mt-8" onClick={() => setIsMobileFiltersOpen(false)}>
-                  Show Results
+        {isMobileFiltersOpen && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/60 z-50 lg:hidden backdrop-blur-sm"
+              onClick={() => setIsMobileFiltersOpen(false)}
+            />
+            <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background p-6 z-50 shadow-2xl lg:hidden overflow-y-auto">
+              <div className="flex justify-end mb-6">
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileFiltersOpen(false)}>
+                  <X className="w-6 h-6" />
                 </Button>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+              </div>
+              <FilterContent />
+              <Button className="w-full mt-8" onClick={() => setIsMobileFiltersOpen(false)}>
+                Show Results
+              </Button>
+            </div>
+          </>
+        )}
 
         {/* Results Grid */}
         <div className="flex-1 w-full">
@@ -267,13 +224,13 @@ function ListingsPageInner() {
                 <div key={i} className="h-[380px] bg-card animate-pulse rounded-2xl border border-border" />
               ))}
             </div>
-          ) : data?.listings && data.listings.length > 0 ? (
+          ) : listings.length > 0 ? (
             <>
               <div className="hidden lg:block mb-6 text-muted-foreground font-medium">
-                Showing {data.total} vehicles
+                Showing {listings.length} vehicles
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {data.listings.map((listing) => (
+                {listings.map((listing) => (
                   <CarCard key={listing.id} listing={listing} />
                 ))}
               </div>
@@ -285,9 +242,11 @@ function ListingsPageInner() {
               </div>
               <h3 className="text-2xl font-bold text-foreground mb-2">No results found</h3>
               <p className="text-muted-foreground max-w-md mx-auto mb-8">
-                We couldn't find any vehicles matching your current filters. Try adjusting or clearing your filters.
+                We couldn't find any vehicles matching your filters. Try adjusting or clearing them.
               </p>
-              <Button onClick={clearFilters} variant="outline" size="lg">Clear All Filters</Button>
+              <Button onClick={clearFilters} variant="outline" size="lg">
+                Clear All Filters
+              </Button>
             </div>
           )}
         </div>

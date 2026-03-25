@@ -3,28 +3,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useAuth } from "@workspace/replit-auth-web";
-import { useCreateListing } from "@workspace/api-client-react";
+import { useMockAuth } from "@/contexts/mock-auth-context";
+import { createListing } from "@/lib/mock-api";
+import type { CreateListingInput } from "@/lib/mock-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Plus, X, AlertCircle } from "lucide-react";
-import type { CreateListingBody } from "@workspace/api-client-react";
 
 export default function PostListingPage() {
-  const { isAuthenticated, isLoading: authLoading, login } = useAuth();
+  const { isAuthenticated, login } = useMockAuth();
   const router = useRouter();
   const { toast } = useToast();
-  
-  const { mutateAsync: createListing, isPending } = useCreateListing();
+  const [isPending, setIsPending] = useState(false);
 
-  const [formData, setFormData] = useState<Partial<CreateListingBody>>({
+  const [formData, setFormData] = useState<Partial<CreateListingInput>>({
     condition: "good",
     images: [""],
+    vehicleType: "car",
   });
 
-  if (authLoading) return <AppLayout><div className="p-20 text-center">Loading...</div></AppLayout>;
-  
   if (!isAuthenticated) {
     return (
       <AppLayout>
@@ -34,7 +32,9 @@ export default function PostListingPage() {
           </div>
           <h2 className="text-2xl font-bold mb-3">Authentication Required</h2>
           <p className="text-muted-foreground mb-8">You must be logged in to post a vehicle for sale on AutoMarket.</p>
-          <Button size="lg" className="w-full" onClick={login}>Log In to Post Ad</Button>
+          <Button size="lg" className="w-full" onClick={login}>
+            Log In to Post Ad
+          </Button>
         </div>
       </AppLayout>
     );
@@ -42,9 +42,9 @@ export default function PostListingPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? Number(value) : value
+      [name]: type === "number" ? Number(value) : value,
     }));
   };
 
@@ -67,19 +67,21 @@ export default function PostListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsPending(true);
     try {
-      // Clean up empty image URLs
       const cleanedData = {
         ...formData,
-        images: formData.images?.filter(img => img.trim() !== "") || []
-      } as CreateListingBody;
+        images: formData.images?.filter((img) => img.trim() !== "") || [],
+      } as CreateListingInput;
 
-      const result = await createListing({ data: cleanedData });
+      const result = await createListing(cleanedData);
       toast({ title: "Listing Created!", description: "Your car is now live on the marketplace." });
       router.push(`/listings/${result.id}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       toast({ title: "Error creating listing", description: message, variant: "destructive" });
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -88,11 +90,12 @@ export default function PostListingPage() {
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="mb-10">
           <h1 className="text-4xl font-display font-bold text-foreground">Sell Your Vehicle</h1>
-          <p className="text-muted-foreground mt-2 text-lg">Fill out the details below to list your vehicle on the marketplace.</p>
+          <p className="text-muted-foreground mt-2 text-lg">
+            Fill out the details below to list your vehicle on the marketplace.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          
           {/* Basic Details */}
           <div className="bg-card p-8 rounded-3xl border border-border shadow-sm">
             <h2 className="text-xl font-bold mb-6 pb-4 border-b border-border">Basic Information</h2>
@@ -107,7 +110,7 @@ export default function PostListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Year *</label>
-                <Input required type="number" min="1900" max="2025" name="year" placeholder="2020" onChange={handleChange} />
+                <Input required type="number" min="1900" max="2026" name="year" placeholder="2020" onChange={handleChange} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price ($) *</label>
@@ -131,7 +134,10 @@ export default function PostListingPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Vehicle Type *</label>
                 <select
-                  required name="vehicleType" onChange={handleChange}
+                  required
+                  name="vehicleType"
+                  onChange={handleChange}
+                  value={formData.vehicleType || ""}
                   className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
                 >
                   <option value="">Select type...</option>
@@ -148,7 +154,10 @@ export default function PostListingPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Condition *</label>
                 <select
-                  required name="condition" onChange={handleChange} value={formData.condition}
+                  required
+                  name="condition"
+                  onChange={handleChange}
+                  value={formData.condition}
                   className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
                 >
                   <option value="excellent">Excellent</option>
@@ -159,8 +168,9 @@ export default function PostListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Transmission</label>
-                <select 
-                  name="transmission" onChange={handleChange}
+                <select
+                  name="transmission"
+                  onChange={handleChange}
                   className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
                 >
                   <option value="">Select...</option>
@@ -170,8 +180,9 @@ export default function PostListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Fuel Type</label>
-                <select 
-                  name="fuelType" onChange={handleChange}
+                <select
+                  name="fuelType"
+                  onChange={handleChange}
                   className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
                 >
                   <option value="">Select...</option>
@@ -192,7 +203,9 @@ export default function PostListingPage() {
           <div className="bg-card p-8 rounded-3xl border border-border shadow-sm">
             <h2 className="text-xl font-bold mb-6 pb-4 border-b border-border">Description *</h2>
             <textarea
-              required name="description" onChange={(e) => handleChange(e)}
+              required
+              name="description"
+              onChange={handleChange}
               placeholder="Tell buyers about your car. Highlight features, history, and reasons for selling..."
               className="w-full min-h-[200px] rounded-xl border-2 border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 resize-y"
             />
@@ -205,23 +218,35 @@ export default function PostListingPage() {
                 <h2 className="text-xl font-bold">Photos</h2>
                 <p className="text-sm text-muted-foreground">Add URLs to high-quality images of your vehicle.</p>
               </div>
-              <Button type="button" variant="outline" size="sm" onClick={addImageField} disabled={(formData.images?.length || 0) >= 10}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addImageField}
+                disabled={(formData.images?.length || 0) >= 10}
+              >
                 <Plus className="w-4 h-4 mr-1" /> Add Image
               </Button>
             </div>
-            
+
             <div className="space-y-3">
               {formData.images?.map((url, index) => (
                 <div key={index} className="flex gap-3">
-                  <Input 
+                  <Input
                     required={index === 0}
-                    placeholder="https://..." 
-                    value={url} 
-                    onChange={(e) => handleImageChange(index, e.target.value)} 
+                    placeholder="https://..."
+                    value={url}
+                    onChange={(e) => handleImageChange(index, e.target.value)}
                     icon={<Upload className="w-4 h-4" />}
                   />
                   {formData.images!.length > 1 && (
-                    <Button type="button" variant="destructive" size="icon" className="shrink-0" onClick={() => removeImageField(index)}>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={() => removeImageField(index)}
+                    >
                       <X className="w-4 h-4" />
                     </Button>
                   )}
@@ -231,8 +256,15 @@ export default function PostListingPage() {
           </div>
 
           <div className="flex justify-end gap-4 pt-4">
-            <Button type="button" variant="ghost" onClick={() => window.history.back()}>Cancel</Button>
-            <Button type="submit" size="lg" className="px-10 text-lg shadow-xl shadow-primary/20" disabled={isPending}>
+            <Button type="button" variant="ghost" onClick={() => window.history.back()}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              size="lg"
+              className="px-10 text-lg shadow-xl shadow-primary/20"
+              disabled={isPending}
+            >
               {isPending ? "Publishing..." : "Post Listing"}
             </Button>
           </div>

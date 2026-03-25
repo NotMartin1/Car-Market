@@ -1,8 +1,8 @@
-# AutoMarket — Used Vehicle Marketplace
+# AutoMarket — Used Vehicle Marketplace (Frontend Prototype)
 
 ## Overview
 
-Full-stack used vehicle marketplace. Users can browse/search listings (cars, trucks, motorcycles, boats & more), view vehicle details, post listings (auth required), manage their own listings, and message sellers directly through a real-time chat system organized by advertisement. Uses Replit Auth (OpenID Connect) for login/logout.
+Front-end prototype of a used vehicle marketplace. Users can browse/search listings (cars, trucks, motorcycles, boats & more), view vehicle details, post listings, manage their own listings, and message sellers through a simulated chat system. All data is in-memory mock data — no database or real API calls.
 
 ## Stack
 
@@ -10,11 +10,7 @@ Full-stack used vehicle marketplace. Users can browse/search listings (cars, tru
 - **Node.js version**: 24
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
-- **Frontend + API**: Next.js 15 (App Router) — unified app with React Server Components and Route Handlers
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Auth**: Replit OIDC (`openid-client` v6, PKCE flow, session-based via PostgreSQL `sessions` table)
+- **Frontend**: Next.js 15 (App Router) — client-side pages with mocked async data
 
 ## Design Theme
 
@@ -23,111 +19,70 @@ Golden/amber palette (primary: `#dfae2d`, dark: `#b8861f`, light: `#f1c85b`, tin
 ## Structure
 
 ```text
-artifacts-monorepo/
-├── artifacts/
-│   ├── car-marketplace/    # Next.js 15 app (frontend + API Route Handlers)
-│   │   ├── src/app/        # Next.js App Router
-│   │   │   ├── api/        # Route Handlers (auth, listings, inquiries)
-│   │   │   ├── layout.tsx  # Root layout
-│   │   │   ├── page.tsx    # Home page
-│   │   │   └── */page.tsx  # Listings, post, my-listings, edit, my-inquiries
-│   │   ├── src/components/ # Reusable React components
-│   │   ├── src/pages/      # Page component implementations (client)
-│   │   └── src/lib/        # Auth helpers (session, OIDC)
-│   └── api-server/         # Legacy Express API server (kept for reference)
-├── lib/                    # Shared libraries
-│   ├── api-spec/           # OpenAPI spec + Orval codegen config
-│   ├── api-client-react/   # Generated React Query hooks
-│   ├── api-zod/            # Generated Zod schemas from OpenAPI
-│   └── db/                 # Drizzle ORM schema + DB connection
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, scripts)
-├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
-├── tsconfig.json           # Root TS project references
-└── package.json            # Root package with hoisted devDeps
+artifacts/
+├── car-marketplace/            # Next.js 15 app (frontend prototype)
+│   └── src/
+│       ├── app/                # Next.js App Router (thin page wrappers)
+│       ├── pages/              # Page component implementations ("use client")
+│       │   ├── HomePage.tsx
+│       │   ├── ListingsPage.tsx
+│       │   ├── ListingDetailPage.tsx
+│       │   ├── PostListingPage.tsx
+│       │   ├── EditListingPage.tsx
+│       │   ├── MyListingsPage.tsx
+│       │   ├── MyInquiriesPage.tsx
+│       │   ├── ReceivedInquiriesPage.tsx
+│       │   ├── MessagesPage.tsx
+│       │   └── ChatPage.tsx
+│       ├── components/         # Reusable React components
+│       │   ├── layout/Navbar.tsx
+│       │   ├── car/CarCard.tsx
+│       │   ├── ui/             # shadcn/ui primitives
+│       │   └── providers.tsx   # MockAuthProvider wrapper
+│       ├── contexts/
+│       │   └── mock-auth-context.tsx  # Auth state (always logged in as John Doe)
+│       └── lib/
+│           ├── mock-data.ts    # 12 listings, 4 users, conversations, messages
+│           ├── mock-api.ts     # All CRUD ops with 250ms simulated delay
+│           └── utils.ts        # formatPrice, formatMileage helpers
+└── api-server/                 # Legacy Express API server (unused)
 ```
 
-## Authentication
+## Mock Data
 
-- Login: `GET /api/login` → redirects to Replit OIDC
-- Callback: `GET /api/callback` → exchanges code, creates session in DB
-- Logout: `GET /api/logout` → deletes session, redirects to Replit end-session
-- Session: `sid` HTTP-only cookie → stored in `sessions` table in PostgreSQL
-- Auth helper: `src/lib/auth.ts` — `getSessionUser(request)` for Route Handlers
+- **Current user**: John Doe (`user-me`), always logged in by default
+- **Listings**: `lst-001` to `lst-012` — mix of cars, trucks, motorcycles, etc.
+- **John's own listings**: `lst-009` (Tacoma), `lst-010` (Miata), `lst-011` (Civic, sold)
+- **Other users**: `user-jane`, `user-bob`, `user-alice`
+- **Auth**: `login()`/`logout()` toggle mock auth state — no real auth
 
-## API Routes (Next.js Route Handlers)
+## Mock API (`src/lib/mock-api.ts`)
 
-- `GET /api/auth/user` — current auth state
-- `GET /api/login` — OIDC login redirect
-- `GET /api/callback` — OIDC callback + session creation
-- `GET /api/logout` — session deletion + OIDC end-session
-- `GET /api/healthz` — health check
-- `GET /api/listings` — list listings with filters
-- `POST /api/listings` — create listing (auth required)
-- `GET /api/listings/[id]` — get listing detail
-- `PUT /api/listings/[id]` — update listing (auth + ownership)
-- `DELETE /api/listings/[id]` — soft-delete listing (auth + ownership)
-- `GET /api/listings/[id]/inquiries` — get inquiries for listing (seller only)
-- `POST /api/listings/[id]/inquiries` — send inquiry (auth required)
-- `GET /api/my-inquiries` — get inquiries sent by current user
-- `GET /api/conversations` — list all conversations for current user (buyer or seller)
-- `POST /api/conversations` — start or resume a conversation about a listing
-- `GET /api/conversations/[id]` — get conversation details + full message history
-- `POST /api/conversations/[id]/messages` — send a message in a conversation
+All functions return a `Promise` with 250ms delay to simulate network latency:
 
-## TypeScript & Composite Projects
+- `getListings(filters?)` — list/search listings
+- `getListing(id)` — get single listing
+- `createListing(data)` — create (owned by current user)
+- `updateListing(id, data)` — update (ownership checked)
+- `deleteListing(id)` — soft-delete
+- `getMyListings()` — current user's listings
+- `getMyInquiries()` — inquiries sent by current user (enriched with listing/sender info)
+- `getListingInquiries(listingId)` — inquiries for a listing (seller only)
+- `sendInquiry(listingId, message)` — create inquiry
+- `getConversations()` — all conversations for current user (enriched with buyer/seller MockUser objects)
+- `getConversation(id)` — single conversation + messages
+- `sendMessage(conversationId, text)` — append message
 
-Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references. This means:
+## Running the App
 
-- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly.
-- **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by Next.js.
-- **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array.
+```bash
+pnpm --filter @workspace/car-marketplace run dev
+```
 
-## Root Scripts
+Runs on port `24519` (or `$PORT`).
 
-- `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
-- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
+## TypeScript Notes
 
-## Packages
-
-### `artifacts/car-marketplace` (`@workspace/car-marketplace`)
-
-Next.js 15 full-stack app. All pages use the App Router. API routes are in `src/app/api/`. Page implementations are in `src/pages/` (client components with "use client"). `src/app/*/page.tsx` files are thin wrappers that import from `src/pages/`.
-
-- `pnpm --filter @workspace/car-marketplace run dev` — dev server (`next dev -p ${PORT:-24519}`)
-- `pnpm --filter @workspace/car-marketplace run build` — production build
-- `pnpm --filter @workspace/car-marketplace run start` — production server
-
-### `artifacts/api-server` (`@workspace/api-server`)
-
-Legacy Express 5 API server (kept for reference). No longer the primary API — Next.js Route Handlers serve the API instead.
-
-### `lib/db` (`@workspace/db`)
-
-Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client instance and schema models.
-
-- `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
-- `src/schema/index.ts` — barrel re-export of all models
-- `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
-
-Production migrations are handled by Replit when publishing. In development, use `pnpm --filter @workspace/db run push`.
-
-### `lib/api-spec` (`@workspace/api-spec`)
-
-Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`). Running codegen produces output into:
-
-1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
-2. `lib/api-zod/src/generated/` — Zod schemas
-
-Run codegen: `pnpm --filter @workspace/api-spec run codegen`
-
-### `lib/api-zod` (`@workspace/api-zod`)
-
-Generated Zod schemas from the OpenAPI spec. Used by car-marketplace API routes for request and response validation.
-
-### `lib/api-client-react` (`@workspace/api-client-react`)
-
-Generated React Query hooks and fetch client from the OpenAPI spec. Used by all client components.
-
-### `scripts` (`@workspace/scripts`)
-
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run via `pnpm --filter @workspace/scripts run <script>`.
+- `next.config.ts` is minimal — no transpilePackages or serverExternalPackages (no external deps needed)
+- `CarCard.tsx` uses `MockListing` from `@/lib/mock-data`
+- No `src/app/api/` directory — all data comes from mock-api.ts
