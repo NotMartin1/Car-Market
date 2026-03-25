@@ -194,20 +194,18 @@ export default function EditListingPage() {
                 <label className="text-sm font-medium">Fuel Type</label>
                 <select className={selectClass} name="fuelType" value={formData.fuelType} onChange={handleChange}>
                   <option value="">Select fuel type</option>
-                  <option value="Gasoline">Gasoline</option>
-                  <option value="Diesel">Diesel</option>
-                  <option value="Electric">Electric</option>
-                  <option value="Hybrid">Hybrid</option>
-                  <option value="Plug-in Hybrid">Plug-in Hybrid</option>
+                  <option value="gasoline">Gasoline</option>
+                  <option value="diesel">Diesel</option>
+                  <option value="electric">Electric</option>
+                  <option value="hybrid">Hybrid</option>
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Transmission</label>
                 <select className={selectClass} name="transmission" value={formData.transmission} onChange={handleChange}>
                   <option value="">Select transmission</option>
-                  <option value="Automatic">Automatic</option>
-                  <option value="Manual">Manual</option>
-                  <option value="CVT">CVT</option>
+                  <option value="automatic">Automatic</option>
+                  <option value="manual">Manual</option>
                 </select>
               </div>
               <div className="space-y-2">
