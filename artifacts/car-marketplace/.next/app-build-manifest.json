@@ -16,35 +16,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
-    "/cookies/page": [
+    "/listings/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/cookies/page.js"
+      "static/chunks/app/listings/page.js"
     ],
-    "/account/page": [
+    "/post/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/account/page.js"
-    ],
-    "/terms/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/terms/page.js"
-    ],
-    "/privacy/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/privacy/page.js"
-    ],
-    "/my-inquiries/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/my-inquiries/page.js"
-    ],
-    "/listings/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/listings/[id]/page.js"
+      "static/chunks/app/post/page.js"
     ]
   }
 }
