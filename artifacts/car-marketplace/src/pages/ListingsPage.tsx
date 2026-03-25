@@ -401,11 +401,11 @@ function ListingsPageInner() {
         <>
           {/* backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
             onClick={() => setIsFilterOpen(false)}
           />
           {/* panel — slides in from the left */}
-          <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-background z-[110] shadow-2xl flex flex-col">
+          <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-background z-[9999] shadow-2xl flex flex-col">
             {/* drawer header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
               <h2 className="font-display font-bold text-lg">Filters</h2>
