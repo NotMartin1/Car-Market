@@ -9,6 +9,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: () => void;
   logout: () => void;
+  updateUser: (updates: Partial<MockUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -18,6 +19,9 @@ export function MockAuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(() => setUser(CURRENT_USER), []);
   const logout = useCallback(() => setUser(null), []);
+  const updateUser = useCallback((updates: Partial<MockUser>) => {
+    setUser((prev) => (prev ? { ...prev, ...updates } : prev));
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -27,6 +31,7 @@ export function MockAuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         login,
         logout,
+        updateUser,
       }}
     >
       {children}

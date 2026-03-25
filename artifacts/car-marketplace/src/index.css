@@ -28,60 +28,60 @@
 }
 
 :root {
-  /* Golden/Amber palette */
-  --background: 46 100% 94%;       /* #fff8e1 warm cream */
-  --foreground: 30 30% 12%;        /* warm dark charcoal */
+  /* Golden/Amber palette — richer, higher contrast */
+  --background: 40 22% 95%;        /* warm off-white */
+  --foreground: 25 35% 8%;         /* near-black with warmth */
 
-  --primary: 42 73% 52%;           /* #dfae2d gold */
-  --primary-foreground: 30 30% 12%; /* dark text on gold */
+  --primary: 43 88% 43%;           /* deep gold #c9940a */
+  --primary-foreground: 0 0% 100%; /* white text on gold */
 
-  --secondary: 44 83% 84%;         /* #f9e6b2 tint */
-  --secondary-foreground: 30 30% 12%;
+  --secondary: 44 70% 88%;         /* light gold tint */
+  --secondary-foreground: 25 35% 8%;
 
-  --muted: 44 60% 88%;
-  --muted-foreground: 30 20% 42%;
+  --muted: 42 30% 90%;
+  --muted-foreground: 30 18% 40%;
 
-  --accent: 38 72% 42%;            /* #b8861f dark gold */
+  --accent: 35 82% 32%;            /* dark amber #9a5c07 */
   --accent-foreground: 46 100% 97%;
 
-  --destructive: 0 84% 60%;
+  --destructive: 0 84% 58%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 44 50% 82%;
-  --input: 44 50% 82%;
-  --ring: 42 73% 52%;
+  --border: 40 22% 84%;
+  --input: 40 22% 84%;
+  --ring: 43 88% 43%;
 
-  --card: 0 0% 100%;
-  --card-foreground: 30 30% 12%;
+  --card: 0 0% 100%;               /* pure white cards */
+  --card-foreground: 25 35% 8%;
 
   --radius: 0.75rem;
 }
 
 .dark {
-  --background: 30 30% 10%;
-  --foreground: 46 100% 94%;
+  --background: 25 28% 9%;
+  --foreground: 46 80% 92%;
 
-  --primary: 42 73% 52%;
-  --primary-foreground: 30 30% 10%;
+  --primary: 43 88% 50%;
+  --primary-foreground: 25 35% 8%;
 
-  --secondary: 30 20% 18%;
-  --secondary-foreground: 46 100% 94%;
+  --secondary: 28 22% 16%;
+  --secondary-foreground: 46 80% 92%;
 
-  --muted: 30 20% 18%;
-  --muted-foreground: 44 30% 65%;
+  --muted: 28 22% 15%;
+  --muted-foreground: 44 28% 60%;
 
-  --accent: 44 83% 65%;
-  --accent-foreground: 30 30% 10%;
+  --accent: 44 70% 62%;
+  --accent-foreground: 25 35% 8%;
 
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 30 20% 20%;
-  --input: 30 20% 20%;
-  --ring: 42 73% 52%;
+  --border: 28 22% 18%;
+  --input: 28 22% 18%;
+  --ring: 43 88% 50%;
 
-  --card: 30 25% 13%;
-  --card-foreground: 46 100% 94%;
+  --card: 25 25% 12%;
+  --card-foreground: 46 80% 92%;
 }
 
 @layer base {
@@ -96,9 +96,18 @@
   }
 }
 
-/* Custom Utilities */
+/* Card shadow helpers */
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.07);
+}
+.card-shadow-lg {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* Glass navbar */
 .glass {
-  @apply bg-background/80 backdrop-blur-lg border-b border-border/50;
+  @apply bg-background/90 backdrop-blur-xl border-b border-border/60;
+  box-shadow: 0 1px 12px rgba(0,0,0,0.06);
 }
 
 .text-balance {
@@ -107,19 +116,39 @@
 
 /* Page entrance animation */
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .page-enter {
-  animation: page-enter 0.3s ease-out both;
+  animation: page-enter 0.35s ease-out both;
+}
+
+/* Section gradient separator */
+.section-warm {
+  background: linear-gradient(180deg, hsl(40 22% 95%) 0%, hsl(42 30% 92%) 100%);
 }
 
 /* Hide scrollbar for clean carousels */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Legal pages */
+.prose-legal {
+  @apply text-foreground/90 leading-relaxed;
 }
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.prose-legal h2 {
+  @apply text-xl font-bold font-display text-foreground mt-10 mb-3;
+}
+.prose-legal h3 {
+  @apply text-base font-semibold text-foreground mt-6 mb-2;
+}
+.prose-legal p {
+  @apply mb-4 text-muted-foreground;
+}
+.prose-legal ul {
+  @apply list-disc pl-5 mb-4 space-y-1 text-muted-foreground;
+}
+.prose-legal a {
+  @apply text-primary hover:underline;
 }
