@@ -14,7 +14,7 @@ export default function MyListingsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const sellerParams = { sellerId: user?.id };
+  const sellerParams = { sellerId: user?.id, limit: 100 };
   const { data, isLoading: listingsLoading } = useListListings(
     sellerParams,
     { query: { queryKey: getListListingsQueryKey(sellerParams), enabled: !!user?.id } }
@@ -94,7 +94,7 @@ export default function MyListingsPage() {
                     <tr key={listing.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
-                          <img src={listing.images[0]} alt="car" className="w-16 h-12 rounded-lg object-cover bg-muted" />
+                          <img src={listing.images[0] ?? "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=200"} alt={`${listing.make} ${listing.model}`} className="w-16 h-12 rounded-lg object-cover bg-muted" />
                           <span className="font-semibold text-foreground text-base">
                             {listing.year} {listing.make} {listing.model}
                           </span>

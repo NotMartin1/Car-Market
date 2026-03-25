@@ -30,7 +30,7 @@ router.get("/listings", async (req, res) => {
       location,
       condition,
       vehicleType,
-      status = "active",
+      status,
       sellerId,
       limit = 24,
       offset = 0,
