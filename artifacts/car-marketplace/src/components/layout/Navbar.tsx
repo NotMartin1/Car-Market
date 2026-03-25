@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Car, Menu, User, Plus, X, Settings, LogOut, ChevronDown, LayoutDashboard, MessageSquare, ClipboardList } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { useAuthModal } from "@/contexts/auth-modal-context";
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, isAuthenticated, login, logout } = useMockAuth();
+  const { user, isAuthenticated, logout } = useMockAuth();
+  const { openLogin, openRegister } = useAuthModal();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -155,16 +157,12 @@ export function Navbar() {
                 </>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Link href="/login">
-                    <Button variant="outline" size="sm" className="font-semibold">
-                      Log In
-                    </Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button size="sm" className="font-semibold shadow-sm shadow-primary/20">
-                      Sign Up
-                    </Button>
-                  </Link>
+                  <Button variant="outline" size="sm" className="font-semibold" onClick={openLogin}>
+                    Log In
+                  </Button>
+                  <Button size="sm" className="font-semibold shadow-sm shadow-primary/20" onClick={openRegister}>
+                    Sign Up
+                  </Button>
                 </div>
               )}
             </div>
@@ -229,12 +227,12 @@ export function Navbar() {
               </div>
             ) : (
               <div className="px-2 flex flex-col gap-2">
-                <Link href="/login">
-                  <Button variant="outline" className="w-full font-semibold">Log In</Button>
-                </Link>
-                <Link href="/register">
-                  <Button className="w-full font-semibold">Sign Up</Button>
-                </Link>
+                <Button variant="outline" className="w-full font-semibold" onClick={() => { setMobileMenuOpen(false); openLogin(); }}>
+                  Log In
+                </Button>
+                <Button className="w-full font-semibold" onClick={() => { setMobileMenuOpen(false); openRegister(); }}>
+                  Sign Up
+                </Button>
               </div>
             )}
           </div>
