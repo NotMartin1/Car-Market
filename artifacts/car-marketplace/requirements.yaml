@@ -1,0 +1,14 @@
+packages:
+  "framer-motion": "For smooth page transitions and micro-interactions"
+  "date-fns": "For readable date formatting of listings and inquiries"
+  "clsx": "For conditional class names"
+  "tailwind-merge": "For merging tailwind classes safely"
+
+images:
+  - path: "artifacts/car-marketplace/public/images/hero-bg.png"
+    description: "A sleek, modern, abstract background with deep navy blue and subtle metallic silver accents, perfect for an automotive marketplace hero section, highly polished, soft lighting."
+    aspect_ratio: "16:9"
+
+notes:
+  - "Using provided @workspace/api-client-react hooks for all API calls."
+  - "Using @workspace/replit-auth-web for authentication state."

@@ -1,15 +1,21 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Used Car Marketplace API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: listings
+    description: Car listings
+  - name: inquiries
+    description: Listing inquiries
+
 paths:
   /healthz:
     get:
@@ -24,6 +30,283 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/user:
+    get:
+      operationId: getCurrentAuthUser
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Auth state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+
+  /listings:
+    get:
+      operationId: listListings
+      tags: [listings]
+      summary: List car listings with optional filters
+      parameters:
+        - in: query
+          name: make
+          schema:
+            type: string
+        - in: query
+          name: model
+          schema:
+            type: string
+        - in: query
+          name: yearMin
+          schema:
+            type: number
+        - in: query
+          name: yearMax
+          schema:
+            type: number
+        - in: query
+          name: priceMin
+          schema:
+            type: number
+        - in: query
+          name: priceMax
+          schema:
+            type: number
+        - in: query
+          name: mileageMax
+          schema:
+            type: number
+        - in: query
+          name: location
+          schema:
+            type: string
+        - in: query
+          name: condition
+          schema:
+            type: string
+            enum: [excellent, good, fair, poor]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, sold, deleted]
+        - in: query
+          name: sellerId
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: number
+        - in: query
+          name: offset
+          schema:
+            type: number
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of listings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListListingsResponse"
+    post:
+      operationId: createListing
+      tags: [listings]
+      summary: Create a new car listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateListingBody"
+      responses:
+        "201":
+          description: Created listing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /listings/{id}:
+    get:
+      operationId: getListing
+      tags: [listings]
+      summary: Get a single listing by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Listing detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateListing
+      tags: [listings]
+      summary: Update a listing (owner only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateListingBody"
+      responses:
+        "200":
+          description: Updated listing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteListing
+      tags: [listings]
+      summary: Delete a listing (owner only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /listings/{id}/inquiries:
+    get:
+      operationId: getListingInquiries
+      tags: [inquiries]
+      summary: Get inquiries for a listing (seller only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of inquiries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListInquiriesResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createInquiry
+      tags: [inquiries]
+      summary: Send an inquiry about a listing
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInquiryBody"
+      responses:
+        "201":
+          description: Created inquiry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Inquiry"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /my-inquiries:
+    get:
+      operationId: getMyInquiries
+      tags: [inquiries]
+      summary: Get inquiries sent by the current user
+      responses:
+        "200":
+          description: List of inquiries sent by the current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListInquiriesResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +317,278 @@ components:
       required:
         - status
 
+    AuthUser:
+      type: object
+      properties:
+        isAuthenticated:
+          type: boolean
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - isAuthenticated
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        profileImageUrl:
+          type: string
+      required:
+        - id
+        - username
+
+    Listing:
+      type: object
+      properties:
+        id:
+          type: string
+        sellerId:
+          type: string
+        sellerUsername:
+          type: string
+        sellerFirstName:
+          type: string
+        sellerLastName:
+          type: string
+        sellerProfileImageUrl:
+          type: string
+        make:
+          type: string
+        model:
+          type: string
+        year:
+          type: number
+        mileage:
+          type: number
+        price:
+          type: number
+        condition:
+          type: string
+          enum: [excellent, good, fair, poor]
+        description:
+          type: string
+        location:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, sold, deleted]
+        transmission:
+          type: string
+          enum: [automatic, manual]
+        fuelType:
+          type: string
+          enum: [gasoline, diesel, electric, hybrid]
+        color:
+          type: string
+        bodyType:
+          type: string
+        vin:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - sellerId
+        - make
+        - model
+        - year
+        - mileage
+        - price
+        - condition
+        - description
+        - location
+        - images
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateListingBody:
+      type: object
+      properties:
+        make:
+          type: string
+        model:
+          type: string
+        year:
+          type: number
+        mileage:
+          type: number
+        price:
+          type: number
+        condition:
+          type: string
+          enum: [excellent, good, fair, poor]
+        description:
+          type: string
+        location:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        transmission:
+          type: string
+          enum: [automatic, manual]
+        fuelType:
+          type: string
+          enum: [gasoline, diesel, electric, hybrid]
+        color:
+          type: string
+        bodyType:
+          type: string
+        vin:
+          type: string
+      required:
+        - make
+        - model
+        - year
+        - mileage
+        - price
+        - condition
+        - description
+        - location
+        - images
+
+    UpdateListingBody:
+      type: object
+      properties:
+        make:
+          type: string
+        model:
+          type: string
+        year:
+          type: number
+        mileage:
+          type: number
+        price:
+          type: number
+        condition:
+          type: string
+          enum: [excellent, good, fair, poor]
+        description:
+          type: string
+        location:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        transmission:
+          type: string
+          enum: [automatic, manual]
+        fuelType:
+          type: string
+          enum: [gasoline, diesel, electric, hybrid]
+        color:
+          type: string
+        bodyType:
+          type: string
+        vin:
+          type: string
+        status:
+          type: string
+          enum: [active, sold, deleted]
+
+    ListListingsResponse:
+      type: object
+      properties:
+        listings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Listing"
+        total:
+          type: number
+      required:
+        - listings
+        - total
+
+    Inquiry:
+      type: object
+      properties:
+        id:
+          type: string
+        listingId:
+          type: string
+        senderId:
+          type: string
+        senderUsername:
+          type: string
+        senderFirstName:
+          type: string
+        senderLastName:
+          type: string
+        message:
+          type: string
+        contactEmail:
+          type: string
+        contactPhone:
+          type: string
+        listingMake:
+          type: string
+        listingModel:
+          type: string
+        listingYear:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - listingId
+        - senderId
+        - message
+        - createdAt
+
+    CreateInquiryBody:
+      type: object
+      properties:
+        message:
+          type: string
+        contactEmail:
+          type: string
+        contactPhone:
+          type: string
+      required:
+        - message
+        - contactEmail
+
+    ListInquiriesResponse:
+      type: object
+      properties:
+        inquiries:
+          type: array
+          items:
+            $ref: "#/components/schemas/Inquiry"
+      required:
+        - inquiries
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
