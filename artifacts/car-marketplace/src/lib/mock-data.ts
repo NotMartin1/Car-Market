@@ -5,6 +5,11 @@ export interface MockUser {
   lastName: string;
   profileImageUrl: string | null;
   email: string;
+  verified?: boolean;
+  rating?: number;
+  ratingCount?: number;
+  memberSince?: string;
+  bio?: string;
 }
 
 export interface MockListing {
@@ -15,6 +20,7 @@ export interface MockListing {
   year: number;
   mileage: number;
   price: string;
+  originalPrice?: string;
   condition: "excellent" | "good" | "fair" | "poor";
   description: string;
   location: string;
@@ -26,8 +32,30 @@ export interface MockListing {
   bodyType: string | null;
   vin: string | null;
   vehicleType: "car" | "motorcycle" | "truck" | "van" | "suv" | "rv" | "boat" | "other";
+  featured?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MockOffer {
+  id: string;
+  listingId: string;
+  buyerId: string;
+  amount: string;
+  message: string;
+  status: "pending" | "accepted" | "declined" | "countered";
+  counterAmount?: string;
+  createdAt: string;
+}
+
+export interface MockNotification {
+  id: string;
+  type: "message" | "offer" | "inquiry" | "price_drop" | "listing_sold";
+  title: string;
+  body: string;
+  href: string;
+  read: boolean;
+  createdAt: string;
 }
 
 export interface MockInquiry {
@@ -65,6 +93,11 @@ export const CURRENT_USER: MockUser = {
   lastName: "Doe",
   profileImageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=john",
   email: "john@example.com",
+  verified: true,
+  rating: 4.7,
+  ratingCount: 12,
+  memberSince: "2024-01-15",
+  bio: "Truck and off-road enthusiast based in Seattle. Always looking for the next adventure rig.",
 };
 
 export const OTHER_USERS: MockUser[] = [
@@ -75,6 +108,11 @@ export const OTHER_USERS: MockUser[] = [
     lastName: "Smith",
     profileImageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=jane",
     email: "jane@example.com",
+    verified: true,
+    rating: 4.9,
+    ratingCount: 34,
+    memberSince: "2023-06-10",
+    bio: "Car enthusiast and part-time flipper. All vehicles sold as-is with full transparency.",
   },
   {
     id: "user-bob",
@@ -83,6 +121,11 @@ export const OTHER_USERS: MockUser[] = [
     lastName: "Johnson",
     profileImageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=bob",
     email: "bob@example.com",
+    verified: false,
+    rating: 4.2,
+    ratingCount: 8,
+    memberSince: "2024-09-01",
+    bio: "Selling a few personal vehicles. Fast responder, serious inquiries only.",
   },
   {
     id: "user-alice",
@@ -91,6 +134,33 @@ export const OTHER_USERS: MockUser[] = [
     lastName: "Wang",
     profileImageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=alice",
     email: "alice@example.com",
+    verified: true,
+    rating: 4.8,
+    ratingCount: 21,
+    memberSince: "2023-11-20",
+    bio: "Luxury car specialist. Every vehicle comes with full service history and clean title.",
+  },
+];
+
+export const INITIAL_OFFERS: MockOffer[] = [
+  {
+    id: "offer-001",
+    listingId: "lst-009",
+    buyerId: "user-alice",
+    amount: "30500",
+    message: "Love this truck! Would $30,500 work for you? I can come pick it up this week.",
+    status: "pending",
+    createdAt: "2026-03-23T12:00:00Z",
+  },
+  {
+    id: "offer-002",
+    listingId: "lst-001",
+    buyerId: "user-me",
+    amount: "27000",
+    message: "Great car! Would you consider $27,000? I'm a cash buyer and can close fast.",
+    status: "countered",
+    counterAmount: "28000",
+    createdAt: "2026-03-19T10:00:00Z",
   },
 ];
 
@@ -103,7 +173,9 @@ export const INITIAL_LISTINGS: MockListing[] = [
     year: 2021,
     mileage: 29000,
     price: "28500",
+    originalPrice: "30000",
     condition: "excellent",
+    featured: true,
     description: "One-owner Subaru Outback in excellent condition. All-wheel drive, heated seats, sunroof, Apple CarPlay. Recently serviced with new brakes and tires. Perfect for mountain adventures or daily commuting.",
     location: "Portland, OR",
     images: ["https://images.unsplash.com/photo-1617531653332-bd46c16f7d5d?w=800&q=80"],

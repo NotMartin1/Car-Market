@@ -1,33 +1,58 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMockAuth } from "@/contexts/mock-auth-context";
 import { useAuthModal } from "@/contexts/auth-modal-context";
 import { useLanguage } from "@/contexts/language-context";
+import { useDarkMode } from "@/contexts/dark-mode-context";
+import { useNotifications } from "@/contexts/notifications-context";
+import { useSaved } from "@/contexts/saved-context";
+import { useCompare } from "@/contexts/compare-context";
 import { Button } from "@/components/ui/button";
-import { Car, Menu, User, Plus, X, Settings, LogOut, ChevronDown, LayoutDashboard, MessageSquare, ClipboardList } from "lucide-react";
+import {
+  Car, Menu, User, Plus, X, Settings, LogOut, ChevronDown,
+  LayoutDashboard, MessageSquare, ClipboardList, Bell, Sun, Moon,
+  Heart, GitCompare, MessageCircle, Tag, TrendingDown, ShoppingBag,
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { Lang } from "@/lib/translations";
+import { formatDistanceToNow } from "date-fns";
 
 const LANGS: { code: Lang; flag: string; label: string }[] = [
   { code: "en", flag: "🇬🇧", label: "EN" },
   { code: "lt", flag: "🇱🇹", label: "LT" },
 ];
 
+const notifIcon: Record<string, React.ReactNode> = {
+  message:      <MessageCircle className="w-4 h-4 text-blue-500" />,
+  offer:        <Tag className="w-4 h-4 text-amber-500" />,
+  inquiry:      <MessageSquare className="w-4 h-4 text-violet-500" />,
+  price_drop:   <TrendingDown className="w-4 h-4 text-emerald-500" />,
+  listing_sold: <ShoppingBag className="w-4 h-4 text-red-500" />,
+};
+
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isAuthenticated, logout } = useMockAuth();
   const { openLogin, openRegister } = useAuthModal();
   const { lang, setLang, t } = useLanguage();
+  const { isDark, toggle: toggleDark } = useDarkMode();
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const { savedIds } = useSaved();
+  const { ids: compareIds } = useCompare();
 
-  const [isScrolled,      setIsScrolled]      = useState(false);
-  const [mobileMenuOpen,  setMobileMenuOpen]  = useState(false);
-  const [userMenuOpen,    setUserMenuOpen]    = useState(false);
-  const [langMenuOpen,    setLangMenuOpen]    = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
-  const langMenuRef = useRef<HTMLDivElement>(null);
+  const [isScrolled,     setIsScrolled]     = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen,   setUserMenuOpen]   = useState(false);
+  const [langMenuOpen,   setLangMenuOpen]   = useState(false);
+  const [notifOpen,      setNotifOpen]      = useState(false);
+
+  const userMenuRef  = useRef<HTMLDivElement>(null);
+  const langMenuRef  = useRef<HTMLDivElement>(null);
+  const notifMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -39,12 +64,14 @@ export function Navbar() {
     setMobileMenuOpen(false);
     setUserMenuOpen(false);
     setLangMenuOpen(false);
+    setNotifOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setUserMenuOpen(false);
-      if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) setLangMenuOpen(false);
+      if (userMenuRef.current  && !userMenuRef.current.contains(e.target as Node))  setUserMenuOpen(false);
+      if (langMenuRef.current  && !langMenuRef.current.contains(e.target as Node))  setLangMenuOpen(false);
+      if (notifMenuRef.current && !notifMenuRef.current.contains(e.target as Node)) setNotifOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -101,7 +128,17 @@ export function Navbar() {
               ))}
             </div>
 
-            <div className="flex items-center gap-2 pl-4 border-l border-border">
+            <div className="flex items-center gap-1.5 pl-4 border-l border-border">
+
+              {/* Dark mode toggle */}
+              <button
+                onClick={toggleDark}
+                title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+
               {/* Language switcher */}
               <div className="relative" ref={langMenuRef}>
                 <button
@@ -134,6 +171,100 @@ export function Navbar() {
                   </div>
                 )}
               </div>
+
+              {/* Compare button */}
+              {compareIds.length > 0 && (
+                <Link
+                  href="/compare"
+                  className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors border border-primary/20"
+                >
+                  <GitCompare className="w-3.5 h-3.5" />
+                  Compare ({compareIds.length})
+                </Link>
+              )}
+
+              {/* Saved */}
+              {isAuthenticated && (
+                <Link
+                  href="/saved"
+                  title="Saved vehicles"
+                  className={cn(
+                    "relative w-9 h-9 flex items-center justify-center rounded-xl transition-colors",
+                    pathname === "/saved" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  )}
+                >
+                  <Heart className="w-4 h-4" />
+                  {savedIds.size > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                      {savedIds.size > 9 ? "9+" : savedIds.size}
+                    </span>
+                  )}
+                </Link>
+              )}
+
+              {/* Notification bell */}
+              {isAuthenticated && (
+                <div className="relative" ref={notifMenuRef}>
+                  <button
+                    onClick={() => setNotifOpen((v) => !v)}
+                    className={cn(
+                      "relative w-9 h-9 flex items-center justify-center rounded-xl transition-colors",
+                      notifOpen ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                    )}
+                  >
+                    <Bell className="w-4 h-4" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {notifOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-50">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                        <h3 className="font-display font-bold text-sm">Notifications</h3>
+                        {unreadCount > 0 && (
+                          <button onClick={markAllRead} className="text-xs text-primary hover:underline font-medium">
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+                      <div className="max-h-80 overflow-y-auto styled-scrollbar divide-y divide-border">
+                        {notifications.length === 0 ? (
+                          <div className="py-8 text-center text-sm text-muted-foreground">No notifications</div>
+                        ) : (
+                          notifications.map((n) => (
+                            <Link
+                              key={n.id}
+                              href={n.href}
+                              onClick={() => { markRead(n.id); setNotifOpen(false); }}
+                              className={cn(
+                                "flex items-start gap-3 px-4 py-3 hover:bg-muted transition-colors",
+                                !n.read && "bg-primary/5",
+                              )}
+                            >
+                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                                {notifIcon[n.type]}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={cn("text-sm leading-tight", !n.read ? "font-semibold text-foreground" : "font-medium text-foreground/80")}>
+                                  {n.title}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
+                                <p className="text-[10px] text-muted-foreground/60 mt-1">
+                                  {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                                </p>
+                              </div>
+                              {!n.read && <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
+                            </Link>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {isAuthenticated ? (
                 <>
@@ -171,23 +302,13 @@ export function Navbar() {
                           <p className="text-xs text-muted-foreground mt-0.5">@{user?.username}</p>
                         </div>
                         <div className="p-1.5">
-                          <Link href="/my-listings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors">
-                            <LayoutDashboard className="w-4 h-4 text-muted-foreground" />{t.nav.myListings}
-                          </Link>
-                          <Link href="/my-inquiries" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors">
-                            <ClipboardList className="w-4 h-4 text-muted-foreground" />{t.nav.myInquiries}
-                          </Link>
-                          <Link href="/messages" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors">
-                            <MessageSquare className="w-4 h-4 text-muted-foreground" />{t.nav.messages}
-                          </Link>
-                          <Link href="/account" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors">
-                            <Settings className="w-4 h-4 text-muted-foreground" />{t.nav.accountSettings}
-                          </Link>
+                          <Link href="/my-listings"  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><LayoutDashboard className="w-4 h-4 text-muted-foreground" />{t.nav.myListings}</Link>
+                          <Link href="/my-inquiries" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><ClipboardList className="w-4 h-4 text-muted-foreground" />{t.nav.myInquiries}</Link>
+                          <Link href="/messages"     className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><MessageSquare className="w-4 h-4 text-muted-foreground" />{t.nav.messages}</Link>
+                          <Link href="/saved"        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><Heart className="w-4 h-4 text-muted-foreground" />Saved Vehicles</Link>
+                          <Link href="/account"      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><Settings className="w-4 h-4 text-muted-foreground" />{t.nav.accountSettings}</Link>
                           <div className="h-px bg-border my-1" />
-                          <button
-                            onClick={logout}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-destructive hover:bg-destructive/8 transition-colors"
-                          >
+                          <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-destructive hover:bg-destructive/8 transition-colors">
                             <LogOut className="w-4 h-4" />{t.nav.signOut}
                           </button>
                         </div>
@@ -234,12 +355,21 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <Link href="/saved" className={cn("flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors", pathname === "/saved" ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted")}>
+                <Heart className="w-4 h-4" /> Saved Vehicles {savedIds.size > 0 && <span className="ml-auto text-xs bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">{savedIds.size}</span>}
+              </Link>
+            )}
+            {compareIds.length > 0 && (
+              <Link href="/compare" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-primary bg-primary/10 transition-colors">
+                <GitCompare className="w-4 h-4" /> Compare ({compareIds.length})
+              </Link>
+            )}
 
             <div className="h-px bg-border my-2" />
 
-            {/* Mobile language switcher */}
-            <div className="px-4 py-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Language</p>
+            {/* Mobile language + dark mode */}
+            <div className="px-4 py-2 flex items-center justify-between">
               <div className="flex gap-2">
                 {LANGS.map((l) => (
                   <button
@@ -247,15 +377,16 @@ export function Navbar() {
                     onClick={() => setLang(l.code)}
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-semibold transition-colors",
-                      lang === l.code
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-foreground hover:bg-muted",
+                      lang === l.code ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground hover:bg-muted",
                     )}
                   >
                     {l.flag} {l.label}
                   </button>
                 ))}
               </div>
+              <button onClick={toggleDark} className="w-9 h-9 flex items-center justify-center rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
             </div>
 
             <div className="h-px bg-border my-2" />
@@ -274,6 +405,12 @@ export function Navbar() {
                     <p className="font-semibold text-sm text-foreground">{user?.firstName} {user?.lastName}</p>
                     <p className="text-xs text-muted-foreground">@{user?.username}</p>
                   </div>
+                  {unreadCount > 0 && (
+                    <Link href="/messages" onClick={() => setMobileMenuOpen(false)} className="ml-auto relative">
+                      <Bell className="w-5 h-5 text-muted-foreground" />
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">{unreadCount}</span>
+                    </Link>
+                  )}
                 </div>
                 <Link href="/post" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:opacity-90 transition-opacity">
                   <Plus className="w-4 h-4" /> {t.nav.postAd}
@@ -281,10 +418,7 @@ export function Navbar() {
                 <Link href="/account" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-foreground hover:bg-muted transition-colors">
                   <Settings className="w-4 h-4 text-muted-foreground" /> {t.nav.accountSettings}
                 </Link>
-                <button
-                  onClick={logout}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-destructive hover:bg-destructive/8 transition-colors"
-                >
+                <button onClick={logout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-destructive hover:bg-destructive/8 transition-colors">
                   <LogOut className="w-4 h-4" /> {t.nav.signOut}
                 </button>
               </div>

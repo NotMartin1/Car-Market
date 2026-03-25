@@ -1,3 +1,10 @@
 {
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/listings/page": "app/listings/page.js",
+  "/listings/[id]/page": "app/listings/[id]/page.js",
+  "/my-listings/page": "app/my-listings/page.js",
+  "/post/page": "app/post/page.js",
+  "/saved/page": "app/saved/page.js",
+  "/compare/page": "app/compare/page.js",
+  "/sellers/[id]/page": "app/sellers/[id]/page.js"
 }
