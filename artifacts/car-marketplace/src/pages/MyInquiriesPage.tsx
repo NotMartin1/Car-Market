@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@workspace/replit-auth-web";
-import { useGetMyInquiries } from "@workspace/api-client-react";
+import { useGetMyInquiries, getGetMyInquiriesQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ExternalLink, Calendar } from "lucide-react";
@@ -10,7 +10,7 @@ export default function MyInquiriesPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   const { data, isLoading } = useGetMyInquiries({
-    query: { enabled: isAuthenticated }
+    query: { queryKey: getGetMyInquiriesQueryKey(), enabled: isAuthenticated }
   });
 
   if (authLoading) return <AppLayout><div className="p-20 text-center">Loading...</div></AppLayout>;

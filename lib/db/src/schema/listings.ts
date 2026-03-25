@@ -6,6 +6,7 @@ export const conditionEnum = pgEnum("condition", ["excellent", "good", "fair", "
 export const statusEnum = pgEnum("listing_status", ["active", "sold", "deleted"]);
 export const transmissionEnum = pgEnum("transmission", ["automatic", "manual"]);
 export const fuelTypeEnum = pgEnum("fuel_type", ["gasoline", "diesel", "electric", "hybrid"]);
+export const vehicleTypeEnum = pgEnum("vehicle_type", ["car", "motorcycle", "truck", "van", "suv", "rv", "boat", "other"]);
 
 export const listingsTable = pgTable("listings", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -25,6 +26,7 @@ export const listingsTable = pgTable("listings", {
   color: text("color"),
   bodyType: text("body_type"),
   vin: text("vin"),
+  vehicleType: vehicleTypeEnum("vehicle_type").notNull().default("car"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

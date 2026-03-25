@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@workspace/replit-auth-web";
-import { useListListings, useUpdateListing, useDeleteListing } from "@workspace/api-client-react";
+import { useListListings, useUpdateListing, useDeleteListing, getListListingsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
@@ -14,9 +14,10 @@ export default function MyListingsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const sellerParams = { sellerId: user?.id };
   const { data, isLoading: listingsLoading } = useListListings(
-    { sellerId: user?.id },
-    { query: { enabled: !!user?.id } }
+    sellerParams,
+    { query: { queryKey: getListListingsQueryKey(sellerParams), enabled: !!user?.id } }
   );
 
   const { mutate: updateListing } = useUpdateListing({

@@ -9,6 +9,7 @@ import type { ListingCondition } from "./listingCondition";
 import type { ListingFuelType } from "./listingFuelType";
 import type { ListingStatus } from "./listingStatus";
 import type { ListingTransmission } from "./listingTransmission";
+import type { ListingVehicleType } from "./listingVehicleType";
 
 export interface Listing {
   id: string;
@@ -32,6 +33,7 @@ export interface Listing {
   color?: string;
   bodyType?: string;
   vin?: string;
+  vehicleType?: ListingVehicleType;
   createdAt: Date;
   updatedAt: Date;
 }

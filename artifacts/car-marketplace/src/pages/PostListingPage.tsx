@@ -84,7 +84,7 @@ export default function PostListingPage() {
     <AppLayout>
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="mb-10">
-          <h1 className="text-4xl font-display font-bold text-foreground">Sell Your Car</h1>
+          <h1 className="text-4xl font-display font-bold text-foreground">Sell Your Vehicle</h1>
           <p className="text-muted-foreground mt-2 text-lg">Fill out the details below to list your vehicle on the marketplace.</p>
         </div>
 
@@ -126,8 +126,25 @@ export default function PostListingPage() {
             <h2 className="text-xl font-bold mb-6 pb-4 border-b border-border">Specifications</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
+                <label className="text-sm font-medium">Vehicle Type *</label>
+                <select
+                  required name="vehicleType" onChange={handleChange}
+                  className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
+                >
+                  <option value="">Select type...</option>
+                  <option value="car">Car</option>
+                  <option value="suv">SUV</option>
+                  <option value="truck">Truck</option>
+                  <option value="motorcycle">Motorcycle</option>
+                  <option value="van">Van</option>
+                  <option value="rv">RV</option>
+                  <option value="boat">Boat</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Condition *</label>
-                <select 
+                <select
                   required name="condition" onChange={handleChange} value={formData.condition}
                   className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
                 >

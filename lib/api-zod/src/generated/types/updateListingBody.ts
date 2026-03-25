@@ -9,6 +9,7 @@ import type { UpdateListingBodyCondition } from "./updateListingBodyCondition";
 import type { UpdateListingBodyFuelType } from "./updateListingBodyFuelType";
 import type { UpdateListingBodyStatus } from "./updateListingBodyStatus";
 import type { UpdateListingBodyTransmission } from "./updateListingBodyTransmission";
+import type { UpdateListingBodyVehicleType } from "./updateListingBodyVehicleType";
 
 export interface UpdateListingBody {
   make?: string;
@@ -25,5 +26,6 @@ export interface UpdateListingBody {
   color?: string;
   bodyType?: string;
   vin?: string;
+  vehicleType?: UpdateListingBodyVehicleType;
   status?: UpdateListingBodyStatus;
 }

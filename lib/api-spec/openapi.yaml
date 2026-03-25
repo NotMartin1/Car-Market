@@ -93,6 +93,11 @@ paths:
             type: string
             enum: [active, sold, deleted]
         - in: query
+          name: vehicleType
+          schema:
+            type: string
+            enum: [car, motorcycle, truck, van, suv, rv, boat, other]
+        - in: query
           name: sellerId
           schema:
             type: string
@@ -395,6 +400,9 @@ components:
           type: string
         vin:
           type: string
+        vehicleType:
+          type: string
+          enum: [car, motorcycle, truck, van, suv, rv, boat, other]
         createdAt:
           type: string
           format: date-time
@@ -453,6 +461,9 @@ components:
           type: string
         vin:
           type: string
+        vehicleType:
+          type: string
+          enum: [car, motorcycle, truck, van, suv, rv, boat, other]
       required:
         - make
         - model
@@ -500,6 +511,9 @@ components:
           type: string
         vin:
           type: string
+        vehicleType:
+          type: string
+          enum: [car, motorcycle, truck, van, suv, rv, boat, other]
         status:
           type: string
           enum: [active, sold, deleted]

@@ -8,6 +8,7 @@
 import type { CreateListingBodyCondition } from "./createListingBodyCondition";
 import type { CreateListingBodyFuelType } from "./createListingBodyFuelType";
 import type { CreateListingBodyTransmission } from "./createListingBodyTransmission";
+import type { CreateListingBodyVehicleType } from "./createListingBodyVehicleType";
 
 export interface CreateListingBody {
   make: string;
@@ -24,4 +25,5 @@ export interface CreateListingBody {
   color?: string;
   bodyType?: string;
   vin?: string;
+  vehicleType?: CreateListingBodyVehicleType;
 }

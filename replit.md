@@ -1,8 +1,8 @@
-# Workspace
+# AutoMarket — Used Vehicle Marketplace
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Full-stack used vehicle marketplace. Users can browse/search listings (cars, trucks, motorcycles, boats & more), view vehicle details, post listings (auth required), manage their own listings, and send inquiries to sellers. Uses Replit Auth (OpenID Connect) for login/logout.
 
 ## Stack
 
@@ -15,6 +15,12 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+- **Frontend**: React + Vite + Tailwind CSS v4
+- **Auth**: Replit OIDC (`lib/replit-auth-web` → `useAuth()` hook)
+
+## Design Theme
+
+Golden/amber palette (primary: `#dfae2d`, dark: `#b8861f`, light: `#f1c85b`, tint: `#f9e6b2`, background: `#fff8e1`)
 
 ## Structure
 

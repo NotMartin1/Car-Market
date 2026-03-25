@@ -7,6 +7,7 @@
  */
 import type { ListListingsCondition } from "./listListingsCondition";
 import type { ListListingsStatus } from "./listListingsStatus";
+import type { ListListingsVehicleType } from "./listListingsVehicleType";
 
 export type ListListingsParams = {
   make?: string;
@@ -19,6 +20,7 @@ export type ListListingsParams = {
   location?: string;
   condition?: ListListingsCondition;
   status?: ListListingsStatus;
+  vehicleType?: ListListingsVehicleType;
   sellerId?: string;
   limit?: number;
   offset?: number;

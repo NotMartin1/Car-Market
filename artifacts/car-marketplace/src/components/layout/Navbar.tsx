@@ -24,7 +24,7 @@ export function Navbar() {
   }, [location]);
 
   const navLinks = [
-    { href: "/listings", label: "Browse Cars" },
+    { href: "/listings", label: "Browse Vehicles" },
   ];
 
   if (isAuthenticated) {

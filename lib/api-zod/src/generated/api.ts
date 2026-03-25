@@ -45,6 +45,9 @@ export const ListListingsQueryParams = zod.object({
   location: zod.coerce.string().optional(),
   condition: zod.enum(["excellent", "good", "fair", "poor"]).optional(),
   status: zod.enum(["active", "sold", "deleted"]).optional(),
+  vehicleType: zod
+    .enum(["car", "motorcycle", "truck", "van", "suv", "rv", "boat", "other"])
+    .optional(),
   sellerId: zod.coerce.string().optional(),
   limit: zod.coerce.number().optional(),
   offset: zod.coerce.number().optional(),
@@ -77,6 +80,18 @@ export const ListListingsResponse = zod.object({
       color: zod.string().optional(),
       bodyType: zod.string().optional(),
       vin: zod.string().optional(),
+      vehicleType: zod
+        .enum([
+          "car",
+          "motorcycle",
+          "truck",
+          "van",
+          "suv",
+          "rv",
+          "boat",
+          "other",
+        ])
+        .optional(),
       createdAt: zod.date(),
       updatedAt: zod.date(),
     }),
@@ -102,6 +117,9 @@ export const CreateListingBody = zod.object({
   color: zod.string().optional(),
   bodyType: zod.string().optional(),
   vin: zod.string().optional(),
+  vehicleType: zod
+    .enum(["car", "motorcycle", "truck", "van", "suv", "rv", "boat", "other"])
+    .optional(),
 });
 
 /**
@@ -133,6 +151,9 @@ export const GetListingResponse = zod.object({
   color: zod.string().optional(),
   bodyType: zod.string().optional(),
   vin: zod.string().optional(),
+  vehicleType: zod
+    .enum(["car", "motorcycle", "truck", "van", "suv", "rv", "boat", "other"])
+    .optional(),
   createdAt: zod.date(),
   updatedAt: zod.date(),
 });
@@ -159,6 +180,9 @@ export const UpdateListingBody = zod.object({
   color: zod.string().optional(),
   bodyType: zod.string().optional(),
   vin: zod.string().optional(),
+  vehicleType: zod
+    .enum(["car", "motorcycle", "truck", "van", "suv", "rv", "boat", "other"])
+    .optional(),
   status: zod.enum(["active", "sold", "deleted"]).optional(),
 });
 
@@ -184,6 +208,9 @@ export const UpdateListingResponse = zod.object({
   color: zod.string().optional(),
   bodyType: zod.string().optional(),
   vin: zod.string().optional(),
+  vehicleType: zod
+    .enum(["car", "motorcycle", "truck", "van", "suv", "rv", "boat", "other"])
+    .optional(),
   createdAt: zod.date(),
   updatedAt: zod.date(),
 });

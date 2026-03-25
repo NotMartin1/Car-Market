@@ -58,6 +58,20 @@ export const ListingFuelType = {
   hybrid: "hybrid",
 } as const;
 
+export type ListingVehicleType =
+  (typeof ListingVehicleType)[keyof typeof ListingVehicleType];
+
+export const ListingVehicleType = {
+  car: "car",
+  motorcycle: "motorcycle",
+  truck: "truck",
+  van: "van",
+  suv: "suv",
+  rv: "rv",
+  boat: "boat",
+  other: "other",
+} as const;
+
 export interface Listing {
   id: string;
   sellerId: string;
@@ -80,6 +94,7 @@ export interface Listing {
   color?: string;
   bodyType?: string;
   vin?: string;
+  vehicleType?: ListingVehicleType;
   createdAt: string;
   updatedAt: string;
 }
@@ -112,6 +127,20 @@ export const CreateListingBodyFuelType = {
   hybrid: "hybrid",
 } as const;
 
+export type CreateListingBodyVehicleType =
+  (typeof CreateListingBodyVehicleType)[keyof typeof CreateListingBodyVehicleType];
+
+export const CreateListingBodyVehicleType = {
+  car: "car",
+  motorcycle: "motorcycle",
+  truck: "truck",
+  van: "van",
+  suv: "suv",
+  rv: "rv",
+  boat: "boat",
+  other: "other",
+} as const;
+
 export interface CreateListingBody {
   make: string;
   model: string;
@@ -127,6 +156,7 @@ export interface CreateListingBody {
   color?: string;
   bodyType?: string;
   vin?: string;
+  vehicleType?: CreateListingBodyVehicleType;
 }
 
 export type UpdateListingBodyCondition =
@@ -157,6 +187,20 @@ export const UpdateListingBodyFuelType = {
   hybrid: "hybrid",
 } as const;
 
+export type UpdateListingBodyVehicleType =
+  (typeof UpdateListingBodyVehicleType)[keyof typeof UpdateListingBodyVehicleType];
+
+export const UpdateListingBodyVehicleType = {
+  car: "car",
+  motorcycle: "motorcycle",
+  truck: "truck",
+  van: "van",
+  suv: "suv",
+  rv: "rv",
+  boat: "boat",
+  other: "other",
+} as const;
+
 export type UpdateListingBodyStatus =
   (typeof UpdateListingBodyStatus)[keyof typeof UpdateListingBodyStatus];
 
@@ -181,6 +225,7 @@ export interface UpdateListingBody {
   color?: string;
   bodyType?: string;
   vin?: string;
+  vehicleType?: UpdateListingBodyVehicleType;
   status?: UpdateListingBodyStatus;
 }
 
@@ -234,6 +279,7 @@ export type ListListingsParams = {
   location?: string;
   condition?: ListListingsCondition;
   status?: ListListingsStatus;
+  vehicleType?: ListListingsVehicleType;
   sellerId?: string;
   limit?: number;
   offset?: number;
@@ -257,4 +303,18 @@ export const ListListingsStatus = {
   active: "active",
   sold: "sold",
   deleted: "deleted",
+} as const;
+
+export type ListListingsVehicleType =
+  (typeof ListListingsVehicleType)[keyof typeof ListListingsVehicleType];
+
+export const ListListingsVehicleType = {
+  car: "car",
+  motorcycle: "motorcycle",
+  truck: "truck",
+  van: "van",
+  suv: "suv",
+  rv: "rv",
+  boat: "boat",
+  other: "other",
 } as const;

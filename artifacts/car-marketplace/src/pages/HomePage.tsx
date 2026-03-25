@@ -35,7 +35,7 @@ export default function HomePage() {
             className="w-full h-full object-cover"
           />
           {/* Gradient overlay to ensure text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#2d1a00]/92 via-[#1a0e00]/78 to-transparent" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col lg:flex-row items-center gap-12">
@@ -45,10 +45,10 @@ export default function HomePage() {
               Trusted by 10,000+ buyers
             </div>
             <h1 className="text-5xl lg:text-7xl font-display font-bold text-white tracking-tight leading-tight mb-6 text-balance">
-              Find Your Next <span className="text-accent bg-clip-text text-transparent bg-gradient-to-r from-accent to-accent/60">Dream Car</span> Today.
+              Find Your Next <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#dfae2d] to-[#f1c85b]">Dream Vehicle</span> Today.
             </h1>
-            <p className="text-lg text-secondary/80 max-w-2xl mx-auto lg:mx-0 mb-10 text-balance">
-              Browse thousands of premium used cars. Connect directly with sellers. No hidden fees, just honest deals.
+            <p className="text-lg text-white/75 max-w-2xl mx-auto lg:mx-0 mb-10 text-balance">
+              Browse thousands of premium used vehicles — cars, trucks, motorcycles & more. No hidden fees, just honest deals.
             </p>
 
             {/* Quick Search Box */}
@@ -81,7 +81,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { icon: ShieldCheck, title: "Verified Sellers", desc: "Every seller is authenticated to ensure a safe buying experience." },
-              { icon: CarIcon, title: "Vast Selection", desc: "Thousands of vehicles added weekly across all price ranges." },
+              { icon: CarIcon, title: "Vast Selection", desc: "Cars, trucks, motorcycles, boats & more — added weekly across all price ranges." },
               { icon: DollarSign, title: "No Hidden Fees", desc: "Negotiate directly with sellers. We don't take a cut of the sale." }
             ].map((feature, i) => (
               <div key={i} className="bg-card p-8 rounded-3xl border border-border shadow-sm hover:shadow-md transition-shadow">

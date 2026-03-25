@@ -29,6 +29,7 @@ router.get("/listings", async (req, res) => {
       mileageMax,
       location,
       condition,
+      vehicleType,
       status = "active",
       sellerId,
       limit = 24,
@@ -50,6 +51,7 @@ router.get("/listings", async (req, res) => {
     if (mileageMax) conditions.push(lte(listingsTable.mileage, mileageMax));
     if (location) conditions.push(ilike(listingsTable.location, `%${location}%`));
     if (condition) conditions.push(eq(listingsTable.condition, condition as "excellent" | "good" | "fair" | "poor"));
+    if (vehicleType) conditions.push(eq(listingsTable.vehicleType, vehicleType as "car" | "motorcycle" | "truck" | "van" | "suv" | "rv" | "boat" | "other"));
     if (sellerId) conditions.push(eq(listingsTable.sellerId, sellerId));
     if (search) {
       conditions.push(
