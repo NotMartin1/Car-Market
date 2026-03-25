@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, conversationsTable, messagesTable, listingsTable, usersTable } from "@workspace/db";
-import { eq, or, and, desc, sql } from "drizzle-orm";
+import { eq, or, and, desc, inArray } from "drizzle-orm";
 import { getSessionUser } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
@@ -38,21 +38,21 @@ export async function GET(request: NextRequest) {
     .orderBy(desc(conversationsTable.updatedAt));
 
   const conversationIds = conversations.map((c) => c.conversation.id);
-  let lastMessages: Array<{ conversationId: string; content: string; senderId: string; createdAt: Date }> = [];
+  const lastMessageMap = new Map<string, { id: string; conversationId: string; senderId: string; content: string; readAt: Date | null; createdAt: Date }>();
 
   if (conversationIds.length > 0) {
-    const raw = await db.execute(
-      sql`
-        SELECT DISTINCT ON (conversation_id) conversation_id as "conversationId", content, sender_id as "senderId", created_at as "createdAt"
-        FROM messages
-        WHERE conversation_id = ANY(${conversationIds})
-        ORDER BY conversation_id, created_at DESC
-      `,
-    );
-    lastMessages = raw as unknown as Array<{ conversationId: string; content: string; senderId: string; createdAt: Date }>;
-  }
+    const allMessages = await db
+      .select()
+      .from(messagesTable)
+      .where(inArray(messagesTable.conversationId, conversationIds))
+      .orderBy(desc(messagesTable.createdAt));
 
-  const lastMessageMap = new Map(lastMessages.map((m) => [m.conversationId, m]));
+    for (const msg of allMessages) {
+      if (!lastMessageMap.has(msg.conversationId)) {
+        lastMessageMap.set(msg.conversationId, msg);
+      }
+    }
+  }
 
   return NextResponse.json({
     conversations: conversations.map(({ conversation, listing, buyer }) => ({
