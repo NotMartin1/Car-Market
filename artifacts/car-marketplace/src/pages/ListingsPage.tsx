@@ -12,7 +12,12 @@ export default function ListingsPage() {
 
   const [make, setMake] = useState(searchParams.get("make") || "");
   const [model, setModel] = useState(searchParams.get("model") || "");
+  const [yearMin, setYearMin] = useState(searchParams.get("yearMin") || "");
+  const [yearMax, setYearMax] = useState(searchParams.get("yearMax") || "");
+  const [priceMin, setPriceMin] = useState(searchParams.get("priceMin") || "");
   const [priceMax, setPriceMax] = useState(searchParams.get("priceMax") || "");
+  const [mileageMax, setMileageMax] = useState(searchParams.get("mileageMax") || "");
+  const [location, setLocation] = useState(searchParams.get("location") || "");
   const [condition, setCondition] = useState<ListListingsCondition | "">(
     (searchParams.get("condition") as ListListingsCondition) || ""
   );
@@ -25,7 +30,12 @@ export default function ListingsPage() {
   const [debouncedFilters, setDebouncedFilters] = useState({
     make,
     model,
+    yearMin: yearMin ? Number(yearMin) : undefined,
+    yearMax: yearMax ? Number(yearMax) : undefined,
+    priceMin: priceMin ? Number(priceMin) : undefined,
     priceMax: priceMax ? Number(priceMax) : undefined,
+    mileageMax: mileageMax ? Number(mileageMax) : undefined,
+    location: location.trim() || undefined,
     condition: condition || undefined,
     vehicleType: vehicleType || undefined,
   });
@@ -35,13 +45,18 @@ export default function ListingsPage() {
       setDebouncedFilters({
         make: make.trim(),
         model: model.trim(),
+        yearMin: yearMin ? Number(yearMin) : undefined,
+        yearMax: yearMax ? Number(yearMax) : undefined,
+        priceMin: priceMin ? Number(priceMin) : undefined,
         priceMax: priceMax ? Number(priceMax) : undefined,
+        mileageMax: mileageMax ? Number(mileageMax) : undefined,
+        location: location.trim() || undefined,
         condition: condition || undefined,
         vehicleType: vehicleType || undefined,
       });
     }, 500);
     return () => clearTimeout(timer);
-  }, [make, model, priceMax, condition, vehicleType]);
+  }, [make, model, yearMin, yearMax, priceMin, priceMax, mileageMax, location, condition, vehicleType]);
 
   const { data, isLoading } = useListListings({
     ...debouncedFilters,
@@ -52,7 +67,12 @@ export default function ListingsPage() {
   const clearFilters = () => {
     setMake("");
     setModel("");
+    setYearMin("");
+    setYearMax("");
+    setPriceMin("");
     setPriceMax("");
+    setMileageMax("");
+    setLocation("");
     setCondition("");
     setVehicleType("");
   };
@@ -91,6 +111,15 @@ export default function ListingsPage() {
         </div>
 
         <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Location</label>
+          <Input
+            placeholder="e.g. Denver, CO"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Make</label>
           <Input
             placeholder="e.g. Honda"
@@ -109,12 +138,48 @@ export default function ListingsPage() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Max Price ($)</label>
+          <label className="text-sm font-medium text-foreground">Year Range</label>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              placeholder="Min year"
+              value={yearMin}
+              onChange={(e) => setYearMin(e.target.value)}
+            />
+            <Input
+              type="number"
+              placeholder="Max year"
+              value={yearMax}
+              onChange={(e) => setYearMax(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Price Range ($)</label>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              placeholder="Min"
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value)}
+            />
+            <Input
+              type="number"
+              placeholder="Max"
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Max Mileage</label>
           <Input
             type="number"
-            placeholder="e.g. 25000"
-            value={priceMax}
-            onChange={(e) => setPriceMax(e.target.value)}
+            placeholder="e.g. 50000"
+            value={mileageMax}
+            onChange={(e) => setMileageMax(e.target.value)}
           />
         </div>
 

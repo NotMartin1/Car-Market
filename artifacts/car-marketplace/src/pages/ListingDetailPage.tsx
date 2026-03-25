@@ -20,6 +20,7 @@ export default function ListingDetailPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [inquiryMessage, setInquiryMessage] = useState("");
   const [inquiryPhone, setInquiryPhone] = useState("");
+  const [inquiryEmail, setInquiryEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { mutateAsync: sendInquiry } = useCreateInquiry();
@@ -38,12 +39,13 @@ export default function ListingDetailPage() {
         data: {
           message: inquiryMessage,
           contactPhone: inquiryPhone,
-          contactEmail: user?.username || "user@example.com", // Assuming username works or we request it. The schema expects contactEmail.
+          contactEmail: inquiryEmail,
         }
       });
       toast({ title: "Inquiry sent successfully!", description: "The seller will be notified." });
       setInquiryMessage("");
       setInquiryPhone("");
+      setInquiryEmail("");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       toast({ title: "Failed to send", description: message, variant: "destructive" });
@@ -225,6 +227,13 @@ export default function ListingDetailPage() {
                           required
                           value={inquiryMessage}
                           onChange={(e) => setInquiryMessage(e.target.value)}
+                        />
+                        <Input
+                          placeholder="Your Email Address"
+                          type="email"
+                          required
+                          value={inquiryEmail}
+                          onChange={(e) => setInquiryEmail(e.target.value)}
                         />
                         <Input 
                           placeholder="Your Phone Number (Optional)"
