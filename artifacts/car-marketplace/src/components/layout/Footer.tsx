@@ -27,16 +27,16 @@ export function Footer() {
             <h4 className="font-display font-semibold mb-4 text-white text-sm uppercase tracking-wider">Quick Links</h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/listings" className="text-white/55 hover:text-primary transition-colors">Browse Vehicles</Link>
+                <Link href="/listings" className="text-white/75 hover:text-primary transition-colors">Browse Vehicles</Link>
               </li>
               <li>
-                <Link href="/post" className="text-white/55 hover:text-primary transition-colors">Sell Your Vehicle</Link>
+                <Link href="/post" className="text-white/75 hover:text-primary transition-colors">Sell Your Vehicle</Link>
               </li>
               <li>
-                <Link href="/my-listings" className="text-white/55 hover:text-primary transition-colors">My Listings</Link>
+                <Link href="/my-listings" className="text-white/75 hover:text-primary transition-colors">My Listings</Link>
               </li>
               <li>
-                <Link href="/messages" className="text-white/55 hover:text-primary transition-colors">Messages</Link>
+                <Link href="/messages" className="text-white/75 hover:text-primary transition-colors">Messages</Link>
               </li>
             </ul>
           </div>
@@ -46,16 +46,16 @@ export function Footer() {
             <h4 className="font-display font-semibold mb-4 text-white text-sm uppercase tracking-wider">Legal</h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/terms" className="text-white/55 hover:text-primary transition-colors">Terms of Service</Link>
+                <Link href="/terms" className="text-white/75 hover:text-primary transition-colors">Terms of Service</Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-white/55 hover:text-primary transition-colors">Privacy Policy</Link>
+                <Link href="/privacy" className="text-white/75 hover:text-primary transition-colors">Privacy Policy</Link>
               </li>
               <li>
-                <Link href="/cookies" className="text-white/55 hover:text-primary transition-colors">Cookie Policy</Link>
+                <Link href="/cookies" className="text-white/75 hover:text-primary transition-colors">Cookie Policy</Link>
               </li>
               <li>
-                <Link href="/account" className="text-white/55 hover:text-primary transition-colors">Account Settings</Link>
+                <Link href="/account" className="text-white/75 hover:text-primary transition-colors">Account Settings</Link>
               </li>
             </ul>
           </div>
