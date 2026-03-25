@@ -44,8 +44,9 @@ export default function ListingDetailPage() {
       toast({ title: "Inquiry sent successfully!", description: "The seller will be notified." });
       setInquiryMessage("");
       setInquiryPhone("");
-    } catch (err: any) {
-      toast({ title: "Failed to send", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      toast({ title: "Failed to send", description: message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
@@ -268,7 +269,7 @@ export default function ListingDetailPage() {
   );
 }
 
-function SpecItem({ icon: Icon, label, value, className }: { icon: any, label: string, value: string | number, className?: string }) {
+function SpecItem({ icon: Icon, label, value, className }: { icon: React.ElementType, label: string, value: string | number, className?: string }) {
   return (
     <div>
       <div className="flex items-center gap-2 text-muted-foreground mb-1 text-sm">

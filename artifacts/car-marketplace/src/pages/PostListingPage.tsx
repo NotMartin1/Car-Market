@@ -75,8 +75,9 @@ export default function PostListingPage() {
       const result = await createListing({ data: cleanedData });
       toast({ title: "Listing Created!", description: "Your car is now live on the marketplace." });
       setLocation(`/listings/${result.id}`);
-    } catch (err: any) {
-      toast({ title: "Error creating listing", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      toast({ title: "Error creating listing", description: message, variant: "destructive" });
     }
   };
 
@@ -189,7 +190,7 @@ export default function PostListingPage() {
           <div className="bg-card p-8 rounded-3xl border border-border shadow-sm">
             <h2 className="text-xl font-bold mb-6 pb-4 border-b border-border">Description *</h2>
             <textarea
-              required name="description" onChange={handleChange as any}
+              required name="description" onChange={(e) => handleChange(e)}
               placeholder="Tell buyers about your car. Highlight features, history, and reasons for selling..."
               className="w-full min-h-[200px] rounded-xl border-2 border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 resize-y"
             />
