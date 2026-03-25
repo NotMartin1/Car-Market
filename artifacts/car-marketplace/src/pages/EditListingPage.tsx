@@ -1,4 +1,6 @@
-import { useParams, useLocation } from "wouter";
+"use client";
+
+import { useParams, useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useGetListing, useUpdateListing } from "@workspace/api-client-react";
 import type { UpdateListingBodyFuelType, UpdateListingBodyTransmission } from "@workspace/api-client-react";
@@ -11,7 +13,7 @@ import React from "react";
 
 export default function EditListingPage() {
   const { id } = useParams<{ id: string }>();
-  const [, setLocation] = useLocation();
+  const router = useRouter();
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
 
@@ -91,7 +93,7 @@ export default function EditListingPage() {
       };
       await updateListing({ id, data: cleanedData });
       toast({ title: "Listing updated!", description: "Your listing has been saved." });
-      setLocation("/my-listings");
+      router.push("/my-listings");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       toast({ title: "Error updating listing", description: message, variant: "destructive" });
@@ -262,7 +264,7 @@ export default function EditListingPage() {
             <Button type="submit" size="lg" className="flex-1" disabled={isPending}>
               {isPending ? "Saving..." : "Save Changes"}
             </Button>
-            <Button type="button" variant="outline" size="lg" onClick={() => setLocation("/my-listings")}>
+            <Button type="button" variant="outline" size="lg" onClick={() => router.push("/my-listings")}>
               Cancel
             </Button>
           </div>

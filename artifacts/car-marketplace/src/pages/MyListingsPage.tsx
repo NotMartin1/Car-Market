@@ -1,3 +1,5 @@
+"use client";
+
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useListListings, useUpdateListing, useDeleteListing, getListListingsQueryKey } from "@workspace/api-client-react";
@@ -5,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import Link from "next/link";
 import { MessageSquare, Edit, Trash2, CheckCircle, ExternalLink, Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 

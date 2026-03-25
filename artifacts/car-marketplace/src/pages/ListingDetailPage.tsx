@@ -1,4 +1,6 @@
-import { useParams } from "wouter";
+"use client";
+
+import { useParams } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useGetListing, useCreateInquiry } from "@workspace/api-client-react";
 import { useAuth } from "@workspace/replit-auth-web";
@@ -9,7 +11,7 @@ import { formatPrice, formatMileage } from "@/lib/utils";
 import { MapPin, Calendar, Gauge, Fuel, Settings, Palette, FileText, CheckCircle2, User, Send, ShieldCheck, Tag } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import Link from "next/link";
 
 export default function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();

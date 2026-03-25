@@ -11,7 +11,7 @@ version = "1.0.0"
 
 [[services]]
 name = "web"
-paths = [ "/" ]
+paths = [ "/", "/api" ]
 localPort = 24519
 
 [services.development]
@@ -19,13 +19,7 @@ run = "pnpm --filter @workspace/car-marketplace run dev"
 
 [services.production]
 build = [ "pnpm", "--filter", "@workspace/car-marketplace", "run", "build" ]
-publicDir = "artifacts/car-marketplace/dist/public"
-serve = "static"
-
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
+run = [ "pnpm", "--filter", "@workspace/car-marketplace", "run", "start" ]
 
 [services.env]
 PORT = "24519"
-BASE_PATH = "/"

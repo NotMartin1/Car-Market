@@ -1,5 +1,7 @@
+"use client";
+
 import type { Listing } from "@workspace/api-client-react";
-import { Link } from "wouter";
+import Link from "next/link";
 import { MapPin, Fuel, Gauge, CheckCircle2, Car, Bike, Truck, Bus, Ship } from "lucide-react";
 import { formatPrice, formatMileage } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";

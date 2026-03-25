@@ -1,7 +1,9 @@
+"use client";
+
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useGetMyInquiries, getGetMyInquiriesQueryKey } from "@workspace/api-client-react";
-import { Link } from "wouter";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ExternalLink, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";

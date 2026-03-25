@@ -1,4 +1,7 @@
-import { Link, useLocation } from "wouter";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CarCard } from "@/components/car/CarCard";
@@ -8,7 +11,7 @@ import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 export default function HomePage() {
-  const [, setLocation] = useLocation();
+  const router = useRouter();
   const [searchMake, setSearchMake] = useState("");
   
   // Fetch a few recent listings for featured section
@@ -17,9 +20,9 @@ export default function HomePage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchMake.trim()) {
-      setLocation(`/listings?make=${encodeURIComponent(searchMake.trim())}`);
+      router.push(`/listings?make=${encodeURIComponent(searchMake.trim())}`);
     } else {
-      setLocation("/listings");
+      router.push("/listings");
     }
   };
 
@@ -30,7 +33,7 @@ export default function HomePage() {
         {/* Abstract dark navy background image with light leaks */}
         <div className="absolute inset-0 z-0">
           <img 
-            src={`${import.meta.env.BASE_URL}images/hero-bg.png`}
+            src="/images/hero-bg.png"
             alt="Premium automotive background"
             className="w-full h-full object-cover"
           />

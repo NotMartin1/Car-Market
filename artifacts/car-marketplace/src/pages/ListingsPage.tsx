@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
 import { useListListings, ListListingsCondition, ListListingsVehicleType } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CarCard } from "@/components/car/CarCard";
@@ -6,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Filter, SlidersHorizontal, X, Search } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 
-export default function ListingsPage() {
-  const searchParams = new URLSearchParams(window.location.search);
+function ListingsPageInner() {
+  const searchParams = useSearchParams();
 
   const [make, setMake] = useState(searchParams.get("make") || "");
   const [model, setModel] = useState(searchParams.get("model") || "");
@@ -289,5 +292,13 @@ export default function ListingsPage() {
         </div>
       </div>
     </AppLayout>
+  );
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense>
+      <ListingsPageInner />
+    </Suspense>
   );
 }

@@ -1,9 +1,11 @@
-import { useParams } from "wouter";
+"use client";
+
+import { useParams } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useGetListing, useGetListingInquiries } from "@workspace/api-client-react";
 import { useAuth } from "@workspace/replit-auth-web";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, ArrowLeft, User, MessageSquare } from "lucide-react";
 

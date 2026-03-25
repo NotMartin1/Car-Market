@@ -1,10 +1,12 @@
+"use client";
+
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { motion } from "framer-motion";
-import { useLocation } from "wouter";
+import { usePathname } from "next/navigation";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const location = usePathname();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

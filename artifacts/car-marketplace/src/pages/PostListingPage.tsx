@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useCreateListing } from "@workspace/api-client-react";
@@ -11,7 +13,7 @@ import type { CreateListingBody } from "@workspace/api-client-react";
 
 export default function PostListingPage() {
   const { isAuthenticated, isLoading: authLoading, login } = useAuth();
-  const [, setLocation] = useLocation();
+  const router = useRouter();
   const { toast } = useToast();
   
   const { mutateAsync: createListing, isPending } = useCreateListing();
@@ -74,7 +76,7 @@ export default function PostListingPage() {
 
       const result = await createListing({ data: cleanedData });
       toast({ title: "Listing Created!", description: "Your car is now live on the marketplace." });
-      setLocation(`/listings/${result.id}`);
+      router.push(`/listings/${result.id}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       toast({ title: "Error creating listing", description: message, variant: "destructive" });
