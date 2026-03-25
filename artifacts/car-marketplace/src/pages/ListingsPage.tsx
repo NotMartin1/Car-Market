@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { getListings } from "@/lib/mock-api";
 import type { MockListing } from "@/lib/mock-data";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -68,8 +69,11 @@ function ListingsPageInner() {
   );
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [mounted,      setMounted]      = useState(false);
   const [listings,     setListings]     = useState<MockListing[]>([]);
   const [isLoading,    setIsLoading]    = useState(true);
+
+  useEffect(() => setMounted(true), []);
 
   const activeCount = [make, model, yearMin, yearMax, priceMin, priceMax, location, condition, vehicleType].filter(Boolean).length;
 
@@ -396,8 +400,8 @@ function ListingsPageInner() {
         )}
       </div>
 
-      {/* ─── filter drawer (shared desktop + mobile) ─── */}
-      {isFilterOpen && (
+      {/* ─── filter drawer rendered in a portal so it escapes the layout stacking context ─── */}
+      {mounted && isFilterOpen && createPortal(
         <>
           {/* backdrop */}
           <div
@@ -432,7 +436,8 @@ function ListingsPageInner() {
               </Button>
             </div>
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </AppLayout>
   );
