@@ -10,6 +10,8 @@ import ListingDetailPage from "./pages/ListingDetailPage";
 import PostListingPage from "./pages/PostListingPage";
 import MyListingsPage from "./pages/MyListingsPage";
 import MyInquiriesPage from "./pages/MyInquiriesPage";
+import EditListingPage from "./pages/EditListingPage";
+import ReceivedInquiriesPage from "./pages/ReceivedInquiriesPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +30,8 @@ function Router() {
       <Route path="/listings/:id" component={ListingDetailPage} />
       <Route path="/post" component={PostListingPage} />
       <Route path="/my-listings" component={MyListingsPage} />
+      <Route path="/my-listings/:id/inquiries" component={ReceivedInquiriesPage} />
+      <Route path="/edit/:id" component={EditListingPage} />
       <Route path="/my-inquiries" component={MyInquiriesPage} />
       <Route component={NotFound} />
     </Switch>

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import { MoreVertical, Edit, Trash2, CheckCircle, ExternalLink, Plus } from "lucide-react";
+import { MessageSquare, Edit, Trash2, CheckCircle, ExternalLink, Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function MyListingsPage() {
@@ -109,16 +109,26 @@ export default function MyListingsPage() {
                       <td className="px-6 py-4 text-muted-foreground">
                         {new Date(listing.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-right space-x-2">
+                      <td className="px-6 py-4 text-right space-x-1">
                         <Link href={`/listings/${listing.id}`}>
-                          <Button variant="ghost" size="icon" title="View"><ExternalLink className="w-4 h-4 text-muted-foreground" /></Button>
+                          <Button variant="ghost" size="icon" title="View listing"><ExternalLink className="w-4 h-4 text-muted-foreground" /></Button>
+                        </Link>
+                        <Link href={`/edit/${listing.id}`}>
+                          <Button variant="ghost" size="icon" title="Edit listing">
+                            <Edit className="w-4 h-4 text-muted-foreground" />
+                          </Button>
+                        </Link>
+                        <Link href={`/my-listings/${listing.id}/inquiries`}>
+                          <Button variant="ghost" size="icon" title="View received inquiries">
+                            <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                          </Button>
                         </Link>
                         {listing.status === 'active' && (
                           <Button variant="ghost" size="icon" title="Mark Sold" onClick={() => handleMarkSold(listing.id)}>
                             <CheckCircle className="w-4 h-4 text-green-600" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="icon" title="Delete" onClick={() => handleDelete(listing.id)}>
+                        <Button variant="ghost" size="icon" title="Delete listing" onClick={() => handleDelete(listing.id)}>
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </td>
