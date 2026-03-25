@@ -13,18 +13,19 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/language-context";
 
 type VehicleType = "car" | "suv" | "truck" | "motorcycle" | "van" | "rv" | "boat" | "other" | "";
 type Condition = "excellent" | "good" | "fair" | "poor" | "";
 
-const VEHICLE_TYPES: { value: VehicleType; label: string; icon: React.ElementType }[] = [
-  { value: "car",        label: "Car",   icon: Car    },
-  { value: "suv",        label: "SUV",   icon: Car    },
-  { value: "truck",      label: "Truck", icon: Truck  },
-  { value: "motorcycle", label: "Moto",  icon: Bike   },
-  { value: "van",        label: "Van",   icon: Bus    },
-  { value: "rv",         label: "RV",    icon: Caravan},
-  { value: "boat",       label: "Boat",  icon: Ship   },
+const VEHICLE_TYPE_OPTIONS: { value: VehicleType; icon: React.ElementType }[] = [
+  { value: "car",        icon: Car     },
+  { value: "suv",        icon: Car     },
+  { value: "truck",      icon: Truck   },
+  { value: "motorcycle", icon: Bike    },
+  { value: "van",        icon: Bus     },
+  { value: "rv",         icon: Caravan },
+  { value: "boat",       icon: Ship    },
 ];
 
 const PRICE_PRESETS = [
@@ -35,11 +36,11 @@ const PRICE_PRESETS = [
   { label: "> $50K",    min: 50000, max: 999999 },
 ];
 
-const CONDITIONS: { value: Condition; label: string; activeClass: string }[] = [
-  { value: "excellent", label: "Excellent", activeClass: "bg-emerald-500 text-white border-emerald-500" },
-  { value: "good",      label: "Good",      activeClass: "bg-blue-500    text-white border-blue-500"    },
-  { value: "fair",      label: "Fair",      activeClass: "bg-amber-500   text-white border-amber-500"   },
-  { value: "poor",      label: "Poor",      activeClass: "bg-red-500     text-white border-red-500"     },
+const CONDITION_OPTIONS: { value: Condition; activeClass: string }[] = [
+  { value: "excellent", activeClass: "bg-emerald-500 text-white border-emerald-500" },
+  { value: "good",      activeClass: "bg-blue-500    text-white border-blue-500"    },
+  { value: "fair",      activeClass: "bg-amber-500   text-white border-amber-500"   },
+  { value: "poor",      activeClass: "bg-red-500     text-white border-red-500"     },
 ];
 
 function FilterLabel({ children }: { children: React.ReactNode }) {
@@ -52,6 +53,9 @@ function Divider() {
 function ListingsPageInner() {
   const rawSearchParams = useSearchParams();
   const searchParams = rawSearchParams ?? new URLSearchParams();
+  const { t } = useLanguage();
+  const lx = t.listings;
+  const fx = t.filters;
 
   const [make,        setMake]        = useState(searchParams.get("make") || "");
   const [model,       setModel]       = useState(searchParams.get("model") || "");
@@ -124,13 +128,29 @@ function ListingsPageInner() {
     }
   };
 
+  const getConditionLabel = (v: Condition) => {
+    const map: Record<string, string> = {
+      excellent: fx.excellent,
+      good:      fx.good,
+      fair:      fx.fair,
+      poor:      fx.poor,
+    };
+    return map[v] || v;
+  };
+
+  const getVehicleLabel = (v: VehicleType) => {
+    if (!v) return "";
+    const key = v as keyof typeof t.types;
+    return t.types[key] || v;
+  };
+
   /* ─── filter panel content ─── */
   const FilterPanel = () => (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h3 className="font-display font-bold text-base flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-primary" />
-          Filters
+          {fx.title}
           {activeCount > 0 && (
             <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
               {activeCount}
@@ -142,7 +162,7 @@ function ListingsPageInner() {
             onClick={clearFilters}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
           >
-            <RotateCcw className="w-3 h-3" /> Reset
+            <RotateCcw className="w-3 h-3" /> {fx.reset}
           </button>
         )}
       </div>
@@ -151,10 +171,11 @@ function ListingsPageInner() {
 
       {/* Vehicle type */}
       <div>
-        <FilterLabel>Vehicle Type</FilterLabel>
+        <FilterLabel>{fx.vehicleType}</FilterLabel>
         <div className="grid grid-cols-4 gap-1.5">
-          {VEHICLE_TYPES.map((vt) => {
+          {VEHICLE_TYPE_OPTIONS.map((vt) => {
             const active = vehicleType === vt.value;
+            const label  = getVehicleLabel(vt.value);
             return (
               <button
                 key={vt.value}
@@ -167,7 +188,7 @@ function ListingsPageInner() {
                 )}
               >
                 <vt.icon className="w-4 h-4" />
-                {vt.label}
+                {label}
               </button>
             );
           })}
@@ -181,7 +202,7 @@ function ListingsPageInner() {
             )}
           >
             <span className="text-base leading-none font-bold">·</span>
-            All
+            {fx.all}
           </button>
         </div>
       </div>
@@ -190,7 +211,7 @@ function ListingsPageInner() {
 
       {/* Price range */}
       <div>
-        <FilterLabel>Price Range</FilterLabel>
+        <FilterLabel>{fx.priceRange}</FilterLabel>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {PRICE_PRESETS.map((p) => {
             const active = activePricePreset?.label === p.label;
@@ -221,9 +242,9 @@ function ListingsPageInner() {
 
       {/* Condition */}
       <div>
-        <FilterLabel>Condition</FilterLabel>
+        <FilterLabel>{fx.condition}</FilterLabel>
         <div className="flex flex-wrap gap-1.5">
-          {CONDITIONS.map((c) => {
+          {CONDITION_OPTIONS.map((c) => {
             const active = condition === c.value;
             return (
               <button
@@ -236,7 +257,7 @@ function ListingsPageInner() {
                     : "bg-background text-foreground/70 border-border hover:border-primary/40 hover:bg-muted",
                 )}
               >
-                {c.label}
+                {getConditionLabel(c.value)}
               </button>
             );
           })}
@@ -247,9 +268,9 @@ function ListingsPageInner() {
 
       {/* Make / Model */}
       <div className="space-y-2">
-        <FilterLabel>Make & Model</FilterLabel>
+        <FilterLabel>{fx.makeModel}</FilterLabel>
         <div className="relative">
-          <Input placeholder="Make (e.g. Toyota)" value={make} onChange={(e) => setMake(e.target.value)} className="h-9 text-sm pr-7" />
+          <Input placeholder={fx.makePlaceholder} value={make} onChange={(e) => setMake(e.target.value)} className="h-9 text-sm pr-7" />
           {make && (
             <button onClick={() => setMake("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="w-3.5 h-3.5" />
@@ -257,7 +278,7 @@ function ListingsPageInner() {
           )}
         </div>
         <div className="relative">
-          <Input placeholder="Model (e.g. Camry)" value={model} onChange={(e) => setModel(e.target.value)} className="h-9 text-sm pr-7" />
+          <Input placeholder={fx.modelPlaceholder} value={model} onChange={(e) => setModel(e.target.value)} className="h-9 text-sm pr-7" />
           {model && (
             <button onClick={() => setModel("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="w-3.5 h-3.5" />
@@ -270,11 +291,11 @@ function ListingsPageInner() {
 
       {/* Year */}
       <div>
-        <FilterLabel>Year Range</FilterLabel>
+        <FilterLabel>{fx.yearRange}</FilterLabel>
         <div className="flex gap-2 items-center">
-          <Input type="number" placeholder="From" value={yearMin} onChange={(e) => setYearMin(e.target.value)} className="h-9 text-sm" />
+          <Input type="number" placeholder={fx.from} value={yearMin} onChange={(e) => setYearMin(e.target.value)} className="h-9 text-sm" />
           <span className="text-muted-foreground text-sm shrink-0">–</span>
-          <Input type="number" placeholder="To"   value={yearMax} onChange={(e) => setYearMax(e.target.value)} className="h-9 text-sm" />
+          <Input type="number" placeholder={fx.to}   value={yearMax} onChange={(e) => setYearMax(e.target.value)} className="h-9 text-sm" />
         </div>
       </div>
 
@@ -282,9 +303,9 @@ function ListingsPageInner() {
 
       {/* Location */}
       <div>
-        <FilterLabel>Location</FilterLabel>
+        <FilterLabel>{fx.location}</FilterLabel>
         <div className="relative">
-          <Input placeholder="City, State (e.g. Denver, CO)" value={location} onChange={(e) => setLocation(e.target.value)} className="h-9 text-sm pr-7" />
+          <Input placeholder={fx.locationPlaceholder} value={location} onChange={(e) => setLocation(e.target.value)} className="h-9 text-sm pr-7" />
           {location && (
             <button onClick={() => setLocation("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="w-3.5 h-3.5" />
@@ -300,14 +321,14 @@ function ListingsPageInner() {
       {/* ─── page header ─── */}
       <div className="bg-foreground text-white pt-24 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-display font-bold mb-1">Browse Vehicles</h1>
-          <p className="text-white/50 text-sm">Search and filter from our full inventory.</p>
+          <h1 className="text-3xl font-display font-bold mb-1">{lx.title}</h1>
+          <p className="text-white/50 text-sm">{lx.subtitle}</p>
           <form onSubmit={handleSearch} className="mt-5 flex gap-2 max-w-xl">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
               <input
                 type="text"
-                placeholder="Search make, model… e.g. Honda Civic"
+                placeholder={lx.searchPlaceholder}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full h-10 pl-9 pr-9 rounded-xl bg-white/10 border border-white/15 text-white placeholder:text-white/35 text-sm focus:outline-none focus:border-primary focus:bg-white/15 transition-all"
@@ -318,7 +339,7 @@ function ListingsPageInner() {
                 </button>
               )}
             </div>
-            <Button type="submit" size="sm" className="h-10 px-5 font-semibold">Search</Button>
+            <Button type="submit" size="sm" className="h-10 px-5 font-semibold">{lx.search}</Button>
           </form>
         </div>
       </div>
@@ -326,18 +347,19 @@ function ListingsPageInner() {
       {/* ─── results area ─── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* toolbar: count + active chips + filter button */}
+        {/* toolbar */}
         <div className="flex flex-wrap items-center gap-2 mb-6">
           <span className="text-sm font-semibold text-foreground shrink-0">
-            {isLoading ? "Loading…" : `${listings.length} vehicle${listings.length !== 1 ? "s" : ""} found`}
+            {isLoading
+              ? lx.loading
+              : `${listings.length} ${listings.length !== 1 ? lx.foundPlural : lx.found} ${lx.foundSuffix}`}
           </span>
 
-          {/* active chips */}
           {vehicleType && (
-            <Chip label={VEHICLE_TYPES.find((v) => v.value === vehicleType)?.label ?? vehicleType} onRemove={() => setVehicleType("")} />
+            <Chip label={getVehicleLabel(vehicleType)} onRemove={() => setVehicleType("")} />
           )}
           {condition && (
-            <Chip label={condition.charAt(0).toUpperCase() + condition.slice(1)} onRemove={() => setCondition("")} />
+            <Chip label={getConditionLabel(condition)} onRemove={() => setCondition("")} />
           )}
           {(priceMin || priceMax) && (
             <Chip
@@ -345,14 +367,13 @@ function ListingsPageInner() {
               onRemove={() => { setPriceMin(""); setPriceMax(""); }}
             />
           )}
-          {make  && <Chip label={`Make: ${make}`}  onRemove={() => setMake("")}  />}
-          {model && <Chip label={`Model: ${model}`} onRemove={() => setModel("")} />}
+          {make  && <Chip label={`${fx.makePlaceholder.split(" ")[0]}: ${make}`}  onRemove={() => setMake("")}  />}
+          {model && <Chip label={`${fx.modelPlaceholder.split(" ")[0]}: ${model}`} onRemove={() => setModel("")} />}
           {(yearMin || yearMax) && (
             <Chip label={`${yearMin || "Any"} – ${yearMax || "Any"}`} onRemove={() => { setYearMin(""); setYearMax(""); }} />
           )}
           {location && <Chip label={location} onRemove={() => setLocation("")} />}
 
-          {/* spacer pushes button right */}
           <div className="flex-1" />
 
           <Button
@@ -362,7 +383,7 @@ function ListingsPageInner() {
             className="gap-2 shrink-0"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            Filters
+            {lx.filters}
             {activeCount > 0 && (
               <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
                 {activeCount}
@@ -371,7 +392,7 @@ function ListingsPageInner() {
           </Button>
         </div>
 
-        {/* results grid — full width */}
+        {/* results grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {[...Array(8)].map((_, i) => (
@@ -389,30 +410,25 @@ function ListingsPageInner() {
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-5">
               <Search className="w-7 h-7 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">No vehicles found</h3>
-            <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
-              Try adjusting or clearing your filters to see more results.
-            </p>
+            <h3 className="text-xl font-bold text-foreground mb-2">{lx.noResults}</h3>
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">{lx.noResultsText}</p>
             <Button onClick={clearFilters} variant="outline" className="gap-2">
-              <RotateCcw className="w-4 h-4" /> Clear All Filters
+              <RotateCcw className="w-4 h-4" /> {lx.clearAll}
             </Button>
           </div>
         )}
       </div>
 
-      {/* ─── filter drawer rendered in a portal so it escapes the layout stacking context ─── */}
+      {/* ─── filter drawer portal ─── */}
       {mounted && isFilterOpen && createPortal(
         <>
-          {/* backdrop */}
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
             onClick={() => setIsFilterOpen(false)}
           />
-          {/* panel — slides in from the left */}
           <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-background z-[9999] shadow-2xl flex flex-col">
-            {/* drawer header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-              <h2 className="font-display font-bold text-lg">Filters</h2>
+              <h2 className="font-display font-bold text-lg">{fx.title}</h2>
               <button
                 onClick={() => setIsFilterOpen(false)}
                 className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -420,19 +436,17 @@ function ListingsPageInner() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            {/* scrollable content */}
             <div className="flex-1 overflow-y-auto styled-scrollbar px-5 py-5">
               <FilterPanel />
             </div>
-            {/* footer */}
             <div className="px-5 py-4 border-t border-border shrink-0 flex gap-3">
               {activeCount > 0 && (
                 <Button variant="outline" onClick={clearFilters} className="gap-1.5 flex-1">
-                  <RotateCcw className="w-3.5 h-3.5" /> Reset
+                  <RotateCcw className="w-3.5 h-3.5" /> {fx.reset}
                 </Button>
               )}
               <Button onClick={() => setIsFilterOpen(false)} className={activeCount > 0 ? "flex-1" : "w-full"}>
-                Show {isLoading ? "…" : listings.length} Results
+                {fx.showResults} {isLoading ? "…" : listings.length} {fx.results}
               </Button>
             </div>
           </div>

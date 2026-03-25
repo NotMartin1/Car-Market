@@ -5,31 +5,31 @@ import { createPortal } from "react-dom";
 import { X, Eye, EyeOff, ArrowRight, Check } from "lucide-react";
 import { useAuthModal } from "@/contexts/auth-modal-context";
 import { useMockAuth } from "@/contexts/mock-auth-context";
+import { useLanguage } from "@/contexts/language-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const PASSWORD_RULES = [
-  { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
-  { label: "One uppercase letter",  test: (p: string) => /[A-Z]/.test(p) },
-  { label: "One number",            test: (p: string) => /\d/.test(p) },
+const PASSWORD_TESTS = [
+  (p: string) => p.length >= 8,
+  (p: string) => /[A-Z]/.test(p),
+  (p: string) => /\d/.test(p),
 ];
 
 export function AuthModal() {
   const { isOpen, tab, close, switchTab } = useAuthModal();
   const { login } = useMockAuth();
+  const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
-  /* lock body scroll while open */
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     else        document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
 
-  /* close on Escape */
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
@@ -39,17 +39,13 @@ export function AuthModal() {
 
   if (!mounted || !isOpen) return null;
 
+  const a = t.auth;
+
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      {/* backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={close}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={close} />
 
-      {/* modal card */}
       <div className="relative w-full max-w-md bg-background rounded-3xl shadow-2xl overflow-hidden">
-        {/* close button */}
         <button
           onClick={close}
           className="absolute top-4 right-4 z-10 p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -59,30 +55,26 @@ export function AuthModal() {
 
         {/* tab bar */}
         <div className="flex border-b border-border">
-          {(["login", "register"] as const).map((t) => (
+          {(["login", "register"] as const).map((tKey) => (
             <button
-              key={t}
-              onClick={() => switchTab(t)}
+              key={tKey}
+              onClick={() => switchTab(tKey)}
               className={cn(
                 "flex-1 py-4 text-sm font-semibold transition-colors relative",
-                tab === t
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                tab === tKey ? "text-foreground" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {t === "login" ? "Log In" : "Sign Up"}
-              {tab === t && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
-              )}
+              {tKey === "login" ? a.tabLogIn : a.tabSignUp}
+              {tab === tKey && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
             </button>
           ))}
         </div>
 
         <div className="px-7 py-6 overflow-y-auto max-h-[80vh] styled-scrollbar">
           {tab === "login" ? (
-            <LoginForm onSuccess={close} login={login} switchTab={() => switchTab("register")} />
+            <LoginForm a={a} onSuccess={close} login={login} switchTab={() => switchTab("register")} />
           ) : (
-            <RegisterForm onSuccess={close} login={login} switchTab={() => switchTab("login")} />
+            <RegisterForm a={a} onSuccess={close} login={login} switchTab={() => switchTab("login")} />
           )}
         </div>
       </div>
@@ -94,11 +86,12 @@ export function AuthModal() {
 /* ────────────────────────────────────────────────────────── */
 /*  LOGIN FORM                                                */
 /* ────────────────────────────────────────────────────────── */
+type AuthStrings = ReturnType<typeof useLanguage>["t"]["auth"];
+
 function LoginForm({
-  onSuccess,
-  login,
-  switchTab,
+  a, onSuccess, login, switchTab,
 }: {
+  a: AuthStrings;
   onSuccess: () => void;
   login: () => void;
   switchTab: () => void;
@@ -137,27 +130,22 @@ function LoginForm({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-display font-bold text-xl text-foreground">Welcome back</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">Sign in to continue to AutoMarket.</p>
+        <h2 className="font-display font-bold text-xl text-foreground">{a.loginTitle}</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">{a.loginSubtext}</p>
       </div>
 
-      {/* social */}
       <div className="flex flex-col gap-2.5">
-        <SocialButton provider="google"   loading={socialLoad === "google"}   disabled={busy} onClick={() => handleSocial("google")}   label="Continue with Google"   />
-        <SocialButton provider="facebook" loading={socialLoad === "facebook"} disabled={busy} onClick={() => handleSocial("facebook")} label="Continue with Facebook" />
+        <SocialButton provider="google"   loading={socialLoad === "google"}   disabled={busy} onClick={() => handleSocial("google")}   label={a.withGoogle}   />
+        <SocialButton provider="facebook" loading={socialLoad === "facebook"} disabled={busy} onClick={() => handleSocial("facebook")} label={a.withFacebook} />
       </div>
 
-      <Divider text="or continue with email" />
+      <Divider text={a.orEmail} />
 
-      {/* form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Field
-          label="Email address"
-          error={errors.email}
-        >
+        <Field label={a.email} error={errors.email}>
           <Input
             type="email"
-            placeholder="you@example.com"
+            placeholder={a.emailPlaceholder}
             value={email}
             onChange={(e) => { setEmail(e.target.value); clearErr(setErrors, "email"); }}
             className={errors.email ? "border-destructive" : ""}
@@ -165,12 +153,12 @@ function LoginForm({
         </Field>
 
         <Field
-          label="Password"
-          labelRight={<button type="button" className="text-xs text-primary hover:underline">Forgot password?</button>}
+          label={a.password}
+          labelRight={<button type="button" className="text-xs text-primary hover:underline">{a.forgotPassword}</button>}
           error={errors.password}
         >
           <PasswordInput
-            placeholder="Enter your password"
+            placeholder={a.passwordPlaceholder}
             value={password}
             onChange={(v) => { setPassword(v); clearErr(setErrors, "password"); }}
             show={showPass}
@@ -182,14 +170,14 @@ function LoginForm({
         <Button type="submit" className="w-full gap-2" disabled={busy}>
           <Spinner show={isLoading} />
           {!isLoading && <ArrowRight className="w-4 h-4" />}
-          {isLoading ? "Signing in…" : "Sign In"}
+          {isLoading ? a.signingIn : a.signIn}
         </Button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
+        {a.noAccount}{" "}
         <button onClick={switchTab} className="text-primary font-semibold hover:underline">
-          Create one
+          {a.createOne}
         </button>
       </p>
     </div>
@@ -200,10 +188,9 @@ function LoginForm({
 /*  REGISTER FORM                                             */
 /* ────────────────────────────────────────────────────────── */
 function RegisterForm({
-  onSuccess,
-  login,
-  switchTab,
+  a, onSuccess, login, switchTab,
 }: {
+  a: AuthStrings;
   onSuccess: () => void;
   login: () => void;
   switchTab: () => void;
@@ -246,29 +233,32 @@ function RegisterForm({
     setTimeout(() => { login(); onSuccess(); }, 900);
   };
 
-  const passwordStrength = PASSWORD_RULES.filter((r) => r.test(password)).length;
+  const passwordStrength = PASSWORD_TESTS.filter((fn) => fn(password)).length;
   const busy = isLoading || socialLoad !== null;
+
+  const passwordRules = [
+    { label: a.rule8chars,   ok: PASSWORD_TESTS[0](password) },
+    { label: a.ruleUppercase, ok: PASSWORD_TESTS[1](password) },
+    { label: a.ruleNumber,    ok: PASSWORD_TESTS[2](password) },
+  ];
 
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-display font-bold text-xl text-foreground">Create your account</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">Join AutoMarket — free to get started.</p>
+        <h2 className="font-display font-bold text-xl text-foreground">{a.registerTitle}</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">{a.registerSubtext}</p>
       </div>
 
-      {/* social */}
       <div className="flex flex-col gap-2.5">
-        <SocialButton provider="google"   loading={socialLoad === "google"}   disabled={busy} onClick={() => handleSocial("google")}   label="Sign up with Google"   />
-        <SocialButton provider="facebook" loading={socialLoad === "facebook"} disabled={busy} onClick={() => handleSocial("facebook")} label="Sign up with Facebook" />
+        <SocialButton provider="google"   loading={socialLoad === "google"}   disabled={busy} onClick={() => handleSocial("google")}   label={a.signUpGoogle}   />
+        <SocialButton provider="facebook" loading={socialLoad === "facebook"} disabled={busy} onClick={() => handleSocial("facebook")} label={a.signUpFacebook} />
       </div>
 
-      <Divider text="or sign up with email" />
+      <Divider text={a.orEmailReg} />
 
-      {/* form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* name row */}
         <div className="grid grid-cols-2 gap-3">
-          <Field label="First name" error={errors.firstName}>
+          <Field label={a.firstName} error={errors.firstName}>
             <Input
               placeholder="John"
               value={firstName}
@@ -276,7 +266,7 @@ function RegisterForm({
               className={errors.firstName ? "border-destructive" : ""}
             />
           </Field>
-          <Field label="Last name" error={errors.lastName}>
+          <Field label={a.lastName} error={errors.lastName}>
             <Input
               placeholder="Doe"
               value={lastName}
@@ -286,26 +276,25 @@ function RegisterForm({
           </Field>
         </div>
 
-        <Field label="Email address" error={errors.email}>
+        <Field label={a.email} error={errors.email}>
           <Input
             type="email"
-            placeholder="you@example.com"
+            placeholder={a.emailPlaceholder}
             value={email}
             onChange={(e) => { setEmail(e.target.value); clearErr(setErrors, "email"); }}
             className={errors.email ? "border-destructive" : ""}
           />
         </Field>
 
-        <Field label="Password" error={errors.password}>
+        <Field label={a.password} error={errors.password}>
           <PasswordInput
-            placeholder="Create a strong password"
+            placeholder={a.passwordCreate}
             value={password}
             onChange={(v) => { setPassword(v); clearErr(setErrors, "password"); }}
             show={showPass}
             onToggle={() => setShowPass((s) => !s)}
             hasError={!!errors.password}
           />
-          {/* strength */}
           {password && (
             <div className="mt-2 space-y-1.5">
               <div className="flex gap-1">
@@ -322,23 +311,20 @@ function RegisterForm({
                 ))}
               </div>
               <ul className="space-y-0.5">
-                {PASSWORD_RULES.map((r) => {
-                  const ok = r.test(password);
-                  return (
-                    <li key={r.label} className={cn("flex items-center gap-1.5 text-xs transition-colors", ok ? "text-emerald-600" : "text-muted-foreground")}>
-                      <Check className={cn("w-3 h-3 shrink-0", ok ? "opacity-100" : "opacity-0")} />
-                      {r.label}
-                    </li>
-                  );
-                })}
+                {passwordRules.map((r) => (
+                  <li key={r.label} className={cn("flex items-center gap-1.5 text-xs transition-colors", r.ok ? "text-emerald-600" : "text-muted-foreground")}>
+                    <Check className={cn("w-3 h-3 shrink-0", r.ok ? "opacity-100" : "opacity-0")} />
+                    {r.label}
+                  </li>
+                ))}
               </ul>
             </div>
           )}
         </Field>
 
-        <Field label="Confirm password" error={errors.confirm}>
+        <Field label={a.confirmPassword} error={errors.confirm}>
           <PasswordInput
-            placeholder="Repeat your password"
+            placeholder={a.passwordRepeat}
             value={confirm}
             onChange={(v) => { setConfirm(v); clearErr(setErrors, "confirm"); }}
             show={showConf}
@@ -348,28 +334,28 @@ function RegisterForm({
           />
           {!errors.confirm && confirm && confirm === password && (
             <p className="text-xs text-emerald-600 flex items-center gap-1 mt-1">
-              <Check className="w-3 h-3" /> Passwords match
+              <Check className="w-3 h-3" /> {a.passwordsMatch}
             </p>
           )}
         </Field>
 
         <p className="text-xs text-muted-foreground">
-          By creating an account you agree to our{" "}
-          <a href="/terms"   className="text-primary hover:underline">Terms</a> and{" "}
-          <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
+          {a.termsAgree}{" "}
+          <a href="/terms"   className="text-primary hover:underline">{a.terms}</a> {a.and}{" "}
+          <a href="/privacy" className="text-primary hover:underline">{a.privacy}</a>.
         </p>
 
         <Button type="submit" className="w-full gap-2" disabled={busy}>
           <Spinner show={isLoading} />
           {!isLoading && <ArrowRight className="w-4 h-4" />}
-          {isLoading ? "Creating account…" : "Create Account"}
+          {isLoading ? a.creatingAccount : a.createAccount}
         </Button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {a.haveAccount}{" "}
         <button onClick={switchTab} className="text-primary font-semibold hover:underline">
-          Sign in
+          {a.signInLink}
         </button>
       </p>
     </div>
@@ -483,7 +469,6 @@ function clearErr(setter: React.Dispatch<React.SetStateAction<Record<string, str
   setter((p) => { const n = { ...p }; delete n[key]; return n; });
 }
 
-/* ── brand SVG icons ── */
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
