@@ -1,4 +1,9 @@
 {
   "/page": "app/page.js",
-  "/listings/page": "app/listings/page.js"
+  "/my-listings/page": "app/my-listings/page.js",
+  "/my-inquiries/page": "app/my-inquiries/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/my-listings/[id]/inquiries/page": "app/my-listings/[id]/inquiries/page.js",
+  "/edit/[id]/page": "app/edit/[id]/page.js",
+  "/listings/[id]/page": "app/listings/[id]/page.js"
 }
