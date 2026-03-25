@@ -133,6 +133,26 @@
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Styled thin scrollbar for panels (filter sidebar, drawers) */
+.styled-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+.styled-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.styled-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 99px;
+}
+.styled-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 99px;
+}
+.styled-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
 /* Legal pages */
 .prose-legal {
   @apply text-foreground/90 leading-relaxed;

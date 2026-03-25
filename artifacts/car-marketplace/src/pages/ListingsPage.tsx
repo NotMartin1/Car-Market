@@ -388,7 +388,7 @@ function ListingsPageInner() {
         </div>
 
         {/* ─── desktop sidebar ─── */}
-        <aside className="hidden lg:block w-64 shrink-0 sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto bg-card rounded-2xl border border-border card-shadow">
+        <aside className="hidden lg:block w-64 shrink-0 sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto styled-scrollbar bg-card rounded-2xl border border-border card-shadow">
           <div className="p-5">
             <FilterPanel />
           </div>
@@ -408,7 +408,7 @@ function ListingsPageInner() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-5">
+              <div className="flex-1 overflow-y-auto styled-scrollbar p-5">
                 <FilterPanel />
               </div>
               <div className="p-5 border-t border-border">
