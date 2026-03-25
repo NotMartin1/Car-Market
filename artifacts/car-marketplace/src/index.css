@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+/* Make dark: utilities respond to the .dark class on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --font-sans: 'DM Sans', sans-serif;
   --font-display: 'Outfit', sans-serif;
@@ -126,7 +129,7 @@
 
 /* Section gradient separator */
 .section-warm {
-  background: linear-gradient(180deg, hsl(40 22% 95%) 0%, hsl(42 30% 92%) 100%);
+  background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
 }
 
 /* Hide scrollbar for clean carousels */
