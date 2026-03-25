@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@workspace/replit-auth-web";
 import { Button } from "@/components/ui/button";
-import { Car, Menu, User, Plus, X } from "lucide-react";
+import { Car, Menu, User, Plus, X, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -33,7 +33,8 @@ export function Navbar() {
   if (isAuthenticated) {
     navLinks.push(
       { href: "/my-listings", label: "My Listings" },
-      { href: "/my-inquiries", label: "My Inquiries" }
+      { href: "/my-inquiries", label: "My Inquiries" },
+      { href: "/messages", label: "Messages" }
     );
   }
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Full-stack used vehicle marketplace. Users can browse/search listings (cars, trucks, motorcycles, boats & more), view vehicle details, post listings (auth required), manage their own listings, and send inquiries to sellers. Uses Replit Auth (OpenID Connect) for login/logout.
+Full-stack used vehicle marketplace. Users can browse/search listings (cars, trucks, motorcycles, boats & more), view vehicle details, post listings (auth required), manage their own listings, and message sellers directly through a real-time chat system organized by advertisement. Uses Replit Auth (OpenID Connect) for login/logout.
 
 ## Stack
 
@@ -69,6 +69,10 @@ artifacts-monorepo/
 - `GET /api/listings/[id]/inquiries` — get inquiries for listing (seller only)
 - `POST /api/listings/[id]/inquiries` — send inquiry (auth required)
 - `GET /api/my-inquiries` — get inquiries sent by current user
+- `GET /api/conversations` — list all conversations for current user (buyer or seller)
+- `POST /api/conversations` — start or resume a conversation about a listing
+- `GET /api/conversations/[id]` — get conversation details + full message history
+- `POST /api/conversations/[id]/messages` — send a message in a conversation
 
 ## TypeScript & Composite Projects
 

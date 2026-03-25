@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useGetListing, useCreateInquiry } from "@workspace/api-client-react";
 import { useAuth } from "@workspace/replit-auth-web";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatMileage } from "@/lib/utils";
-import { MapPin, Calendar, Gauge, Fuel, Settings, Palette, FileText, CheckCircle2, User, Send, ShieldCheck, Tag } from "lucide-react";
+import { MapPin, Calendar, Gauge, Fuel, Settings, Palette, FileText, CheckCircle2, User, Send, ShieldCheck, Tag, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -16,6 +16,7 @@ import Link from "next/link";
 export default function ListingDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
+  const router = useRouter();
   const { data: listing, isLoading, error } = useGetListing(id);
   const { isAuthenticated, user, login } = useAuth();
   const { toast } = useToast();
@@ -25,8 +26,29 @@ export default function ListingDetailPage() {
   const [inquiryPhone, setInquiryPhone] = useState("");
   const [inquiryEmail, setInquiryEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [startingChat, setStartingChat] = useState(false);
 
   const { mutateAsync: sendInquiry } = useCreateInquiry();
+
+  const handleStartChat = async () => {
+    if (!listing) return;
+    setStartingChat(true);
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listingId: listing.id }),
+      });
+      if (res.ok) {
+        const { conversationId } = await res.json();
+        router.push(`/messages/${conversationId}`);
+      } else {
+        toast({ title: "Error", description: "Could not start conversation.", variant: "destructive" });
+      }
+    } finally {
+      setStartingChat(false);
+    }
+  };
 
   const isOwner = isAuthenticated && user?.id === listing?.sellerId;
 
@@ -215,47 +237,28 @@ export default function ListingDetailPage() {
                 ) : (
                   <div className="space-y-4">
                     <h4 className="font-semibold flex items-center gap-2">
-                      <Send className="w-4 h-4 text-accent" /> Contact Seller
+                      <MessageSquare className="w-4 h-4 text-accent" /> Message Seller
                     </h4>
                     {!isAuthenticated ? (
                       <div className="bg-muted p-4 rounded-2xl text-center">
-                        <p className="text-sm text-muted-foreground mb-4">Please log in to send a message to the seller.</p>
+                        <p className="text-sm text-muted-foreground mb-4">Sign in to chat with the seller about this listing.</p>
                         <Button onClick={login} className="w-full">Sign In to Message</Button>
                       </div>
+                    ) : listing.status === "sold" ? (
+                      <p className="text-sm text-center text-destructive font-medium bg-destructive/10 py-3 px-4 rounded-xl">This vehicle has been sold.</p>
                     ) : (
-                      <form onSubmit={handleInquiry} className="space-y-4">
-                        <textarea
-                          placeholder="I'm interested in this car..."
-                          className="w-full min-h-[120px] rounded-xl border-2 border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 resize-none"
-                          required
-                          value={inquiryMessage}
-                          onChange={(e) => setInquiryMessage(e.target.value)}
-                        />
-                        <Input
-                          placeholder="Your Email Address"
-                          type="email"
-                          required
-                          value={inquiryEmail}
-                          onChange={(e) => setInquiryEmail(e.target.value)}
-                        />
-                        <Input 
-                          placeholder="Your Phone Number (Optional)"
-                          type="tel"
-                          value={inquiryPhone}
-                          onChange={(e) => setInquiryPhone(e.target.value)}
-                        />
-                        <Button 
-                          type="submit" 
-                          className="w-full shadow-lg shadow-primary/20" 
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">Start a conversation with the seller about this vehicle. All messages are saved in your inbox.</p>
+                        <Button
+                          className="w-full shadow-lg shadow-primary/20 gap-2"
                           size="lg"
-                          disabled={isSubmitting || listing.status === 'sold'}
+                          onClick={handleStartChat}
+                          disabled={startingChat}
                         >
-                          {isSubmitting ? "Sending..." : "Send Message"}
+                          <MessageSquare className="w-4 h-4" />
+                          {startingChat ? "Opening Chat…" : "Chat with Seller"}
                         </Button>
-                        {listing.status === 'sold' && (
-                          <p className="text-xs text-center text-destructive font-medium">This car has been sold.</p>
-                        )}
-                      </form>
+                      </div>
                     )}
                   </div>
                 )}
