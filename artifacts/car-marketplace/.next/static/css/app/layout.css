@@ -436,6 +436,9 @@
   .z-\[100\] {
     z-index: 100;
   }
+  .z-\[110\] {
+    z-index: 110;
+  }
   .order-first {
     order: -9999;
   }
@@ -1427,11 +1430,17 @@
   .border-amber-200 {
     border-color: var(--color-amber-200);
   }
+  .border-amber-500 {
+    border-color: var(--color-amber-500);
+  }
   .border-background {
     border-color: hsl(var(--background));
   }
   .border-blue-200 {
     border-color: var(--color-blue-200);
+  }
+  .border-blue-500 {
+    border-color: var(--color-blue-500);
   }
   .border-border {
     border-color: hsl(var(--border));
@@ -1475,6 +1484,9 @@
   .border-emerald-200 {
     border-color: var(--color-emerald-200);
   }
+  .border-emerald-500 {
+    border-color: var(--color-emerald-500);
+  }
   .border-green-200 {
     border-color: var(--color-green-200);
   }
@@ -1513,6 +1525,9 @@
   }
   .border-red-200 {
     border-color: var(--color-red-200);
+  }
+  .border-red-500 {
+    border-color: var(--color-red-500);
   }
   .border-transparent {
     border-color: transparent;
@@ -1565,6 +1580,9 @@
   .bg-amber-50 {
     background-color: var(--color-amber-50);
   }
+  .bg-amber-500 {
+    background-color: var(--color-amber-500);
+  }
   .bg-amber-500\/90 {
     background-color: color-mix(in srgb, oklch(76.9% 0.188 70.08) 90%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1578,6 +1596,12 @@
     background-color: hsl(var(--background));
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, hsl(var(--background)) 98%, transparent);
+    }
+  }
+  .bg-black\/50 {
+    background-color: color-mix(in srgb, #000 50%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-black) 50%, transparent);
     }
   }
   .bg-black\/60 {
@@ -1594,6 +1618,9 @@
   }
   .bg-blue-50 {
     background-color: var(--color-blue-50);
+  }
+  .bg-blue-500 {
+    background-color: var(--color-blue-500);
   }
   .bg-blue-500\/90 {
     background-color: color-mix(in srgb, oklch(62.3% 0.214 259.815) 90%, transparent);
@@ -1627,6 +1654,9 @@
   }
   .bg-emerald-50 {
     background-color: var(--color-emerald-50);
+  }
+  .bg-emerald-500 {
+    background-color: var(--color-emerald-500);
   }
   .bg-emerald-500\/90 {
     background-color: color-mix(in srgb, oklch(69.6% 0.17 162.48) 90%, transparent);
@@ -1723,6 +1753,9 @@
   }
   .bg-red-50 {
     background-color: var(--color-red-50);
+  }
+  .bg-red-500 {
+    background-color: var(--color-red-500);
   }
   .bg-red-500\/90 {
     background-color: color-mix(in srgb, oklch(63.7% 0.237 25.331) 90%, transparent);
@@ -1981,6 +2014,9 @@
   }
   .pr-8 {
     padding-right: calc(var(--spacing) * 8);
+  }
+  .pr-9 {
+    padding-right: calc(var(--spacing) * 9);
   }
   .pb-3 {
     padding-bottom: calc(var(--spacing) * 3);
@@ -4551,6 +4587,11 @@
   .xl\:grid-cols-3 {
     @media (width >= 80rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .xl\:grid-cols-4 {
+    @media (width >= 80rem) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
   .\@md\/field-group\:flex-row {
