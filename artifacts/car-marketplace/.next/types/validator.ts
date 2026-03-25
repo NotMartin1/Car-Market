@@ -126,24 +126,6 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
   type __Unused = __Check
 }
 
-// Validate ../../src/app/my-inquiries/page.tsx
-{
-  type __IsExpected<Specific extends AppPageConfig<"/my-inquiries">> = Specific
-  const handler = {} as typeof import("../../src/app/my-inquiries/page.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/app/my-listings/[id]/inquiries/page.tsx
-{
-  type __IsExpected<Specific extends AppPageConfig<"/my-listings/[id]/inquiries">> = Specific
-  const handler = {} as typeof import("../../src/app/my-listings/[id]/inquiries/page.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
 // Validate ../../src/app/my-listings/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/my-listings">> = Specific
@@ -290,15 +272,6 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
   type __Unused = __Check
 }
 
-// Validate ../../src/pages/MyInquiriesPage.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/MyInquiriesPage.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
 // Validate ../../src/pages/MyListingsPage.tsx
 {
   type __IsExpected<Specific extends PagesPageConfig> = Specific
@@ -321,15 +294,6 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
 {
   type __IsExpected<Specific extends PagesPageConfig> = Specific
   const handler = {} as typeof import("../../src/pages/PrivacyPage.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/pages/ReceivedInquiriesPage.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/ReceivedInquiriesPage.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check

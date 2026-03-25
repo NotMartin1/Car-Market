@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMockAuth } from "@/contexts/mock-auth-context";
 import { getConversation, sendMessage } from "@/lib/mock-api";
+import { Navbar } from "@/components/layout/Navbar";
 import { formatDistanceToNow, format } from "date-fns";
 import { ArrowLeft, Send, Car, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -89,11 +90,14 @@ export default function ChatPage({ conversationId }: { conversationId: string })
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        <div className="animate-pulse space-y-4">
-          <div className="h-20 bg-muted rounded-2xl" />
-          <div className="h-96 bg-muted rounded-2xl" />
-          <div className="h-16 bg-muted rounded-2xl" />
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <div className="max-w-3xl mx-auto px-4 py-12 pt-28 w-full">
+          <div className="animate-pulse space-y-4">
+            <div className="h-20 bg-muted rounded-2xl" />
+            <div className="h-96 bg-muted rounded-2xl" />
+            <div className="h-16 bg-muted rounded-2xl" />
+          </div>
         </div>
       </div>
     );
@@ -118,7 +122,9 @@ export default function ChatPage({ conversationId }: { conversationId: string })
   });
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-4 flex flex-col h-[calc(100vh-5rem)]">
+    <div className="min-h-screen flex flex-col bg-background">
+    <Navbar />
+    <div className="max-w-3xl mx-auto px-4 py-4 flex flex-col w-full" style={{ height: "calc(100vh - 5rem)", paddingTop: "5rem" }}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <Link href="/messages">
@@ -251,6 +257,7 @@ export default function ChatPage({ conversationId }: { conversationId: string })
           Enter to send · Shift+Enter for new line
         </p>
       </div>
+    </div>
     </div>
   );
 }

@@ -7,7 +7,9 @@ import { SavedProvider } from "@/contexts/saved-context";
 import { DarkModeProvider } from "@/contexts/dark-mode-context";
 import { NotificationsProvider } from "@/contexts/notifications-context";
 import { CompareProvider } from "@/contexts/compare-context";
+import { FloatingChatProvider } from "@/contexts/floating-chat-context";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { FloatingChat } from "@/components/chat/FloatingChat";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -20,11 +22,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <NotificationsProvider>
               <SavedProvider>
                 <CompareProvider>
-                  <TooltipProvider>
-                    {children}
-                    <AuthModal />
-                    <Toaster />
-                  </TooltipProvider>
+                  <FloatingChatProvider>
+                    <TooltipProvider>
+                      {children}
+                      <AuthModal />
+                      <Toaster />
+                      <FloatingChat />
+                    </TooltipProvider>
+                  </FloatingChatProvider>
                 </CompareProvider>
               </SavedProvider>
             </NotificationsProvider>

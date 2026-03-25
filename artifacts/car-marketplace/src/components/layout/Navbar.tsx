@@ -12,7 +12,7 @@ import { useCompare } from "@/contexts/compare-context";
 import { Button } from "@/components/ui/button";
 import {
   Car, Menu, User, Plus, X, Settings, LogOut, ChevronDown,
-  LayoutDashboard, MessageSquare, ClipboardList, Bell, Sun, Moon,
+  LayoutDashboard, MessageSquare, Bell, Sun, Moon,
   Heart, GitCompare, MessageCircle, Tag, TrendingDown, ShoppingBag,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -80,9 +80,8 @@ export function Navbar() {
   const navLinks = [{ href: "/listings", label: t.nav.browse }];
   if (isAuthenticated) {
     navLinks.push(
-      { href: "/my-listings",  label: t.nav.myListings  },
-      { href: "/my-inquiries", label: t.nav.myInquiries },
-      { href: "/messages",     label: t.nav.messages    },
+      { href: "/my-listings", label: t.nav.myListings },
+      { href: "/messages",    label: t.nav.messages   },
     );
   }
 
@@ -302,9 +301,8 @@ export function Navbar() {
                           <p className="text-xs text-muted-foreground mt-0.5">@{user?.username}</p>
                         </div>
                         <div className="p-1.5">
-                          <Link href="/my-listings"  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><LayoutDashboard className="w-4 h-4 text-muted-foreground" />{t.nav.myListings}</Link>
-                          <Link href="/my-inquiries" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><ClipboardList className="w-4 h-4 text-muted-foreground" />{t.nav.myInquiries}</Link>
-                          <Link href="/messages"     className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><MessageSquare className="w-4 h-4 text-muted-foreground" />{t.nav.messages}</Link>
+                          <Link href="/my-listings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><LayoutDashboard className="w-4 h-4 text-muted-foreground" />{t.nav.myListings}</Link>
+                          <Link href="/messages"    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><MessageSquare className="w-4 h-4 text-muted-foreground" />{t.nav.messages}</Link>
                           <Link href="/saved"        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><Heart className="w-4 h-4 text-muted-foreground" />Saved Vehicles</Link>
                           <Link href="/account"      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors"><Settings className="w-4 h-4 text-muted-foreground" />{t.nav.accountSettings}</Link>
                           <div className="h-px bg-border my-1" />

@@ -4,7 +4,6 @@ const en = {
   nav: {
     browse: "Browse Vehicles",
     myListings: "My Listings",
-    myInquiries: "My Inquiries",
     messages: "Messages",
     postAd: "Post Ad",
     logIn: "Log In",
@@ -149,7 +148,6 @@ const lt: typeof en = {
   nav: {
     browse: "Naršyti transportą",
     myListings: "Mano skelbimai",
-    myInquiries: "Mano užklausos",
     messages: "Žinutės",
     postAd: "Skelbti",
     logIn: "Prisijungti",

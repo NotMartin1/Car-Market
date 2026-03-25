@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMockAuth } from "@/contexts/mock-auth-context";
 import { getConversations } from "@/lib/mock-api";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare, Car, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -56,17 +57,20 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        <div className="space-y-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="animate-pulse bg-muted rounded-2xl h-24" />
-          ))}
+      <AppLayout>
+        <div className="max-w-3xl mx-auto px-4 py-12">
+          <div className="space-y-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse bg-muted rounded-2xl h-24" />
+            ))}
+          </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
+    <AppLayout>
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">Messages</h1>
@@ -155,5 +159,6 @@ export default function MessagesPage() {
         </div>
       )}
     </div>
+    </AppLayout>
   );
 }

@@ -124,7 +124,7 @@ export function CarCard({ listing }: { listing: MockListing }) {
 
             {/* Vehicle type */}
             <div className="absolute top-3 right-3">
-              <span className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-foreground text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-sm">
+              <span className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-sm">
                 {vehicleTypeIcon[vType]}
                 {vehicleTypeLabel[vType] ?? vType}
               </span>
