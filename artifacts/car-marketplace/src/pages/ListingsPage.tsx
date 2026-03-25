@@ -398,10 +398,10 @@ function ListingsPageInner() {
         {isMobileFiltersOpen && (
           <>
             <div
-              className="fixed inset-0 bg-black/60 z-50 lg:hidden backdrop-blur-sm"
+              className="fixed inset-0 bg-black/60 z-[60] lg:hidden backdrop-blur-sm"
               onClick={() => setIsMobileFiltersOpen(false)}
             />
-            <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background z-50 shadow-2xl lg:hidden flex flex-col">
+            <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background z-[70] shadow-2xl lg:hidden flex flex-col">
               <div className="flex items-center justify-between px-5 py-4 border-b border-border">
                 <h2 className="font-display font-bold text-lg">Filters</h2>
                 <button onClick={() => setIsMobileFiltersOpen(false)} className="p-1 text-muted-foreground hover:text-foreground">
