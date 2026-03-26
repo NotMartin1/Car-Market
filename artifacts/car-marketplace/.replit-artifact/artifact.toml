@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Car Marketplace"
+title = "AutoMarket"
 version = "1.0.0"
 id = "artifacts/car-marketplace"
 router = "path"
@@ -12,14 +12,14 @@ version = "1.0.0"
 [[services]]
 name = "web"
 paths = [ "/", "/api" ]
-localPort = 24519
+localPort = 3000
 
 [services.development]
-run = "pnpm --filter @workspace/car-marketplace run dev"
+run = "pnpm --dir /home/runner/workspace run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/car-marketplace", "run", "build" ]
-run = [ "pnpm", "--filter", "@workspace/car-marketplace", "run", "start" ]
+build = [ "pnpm", "--dir", "/home/runner/workspace", "run", "build" ]
+run = [ "pnpm", "--dir", "/home/runner/workspace", "run", "start" ]
 
 [services.env]
-PORT = "24519"
+PORT = "3000"
