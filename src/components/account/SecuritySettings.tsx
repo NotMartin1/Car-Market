@@ -1,25 +1,38 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Shield, Lock, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Section } from "./account-shared";
 
-export function SecuritySettings() {
-  const [currentPw, setCurrentPw] = useState("");
-  const [newPw,     setNewPw]     = useState("");
-  const [confirmPw, setConfirmPw] = useState("");
-  const [saved,     setSaved]     = useState(false);
-  const [error,     setError]     = useState("");
+const schema = z.object({
+  currentPassword: z.string().min(1, "Please enter your current password."),
+  newPassword:     z.string().min(8, "New password must be at least 8 characters."),
+  confirmPassword: z.string(),
+}).refine((d) => d.newPassword === d.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"],
+});
 
-  const handleSave = () => {
-    setError("");
-    if (!currentPw) { setError("Please enter your current password."); return; }
-    if (newPw.length < 8) { setError("New password must be at least 8 characters."); return; }
-    if (newPw !== confirmPw) { setError("Passwords do not match."); return; }
+type FormValues = z.infer<typeof schema>;
+
+export function SecuritySettings() {
+  const [saved, setSaved] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const onSubmit = (_data: FormValues) => {
     setSaved(true);
-    setCurrentPw(""); setNewPw(""); setConfirmPw("");
+    reset();
     setTimeout(() => setSaved(false), 3000);
   };
 
@@ -27,51 +40,52 @@ export function SecuritySettings() {
     <Section title="Security" icon={Shield}>
       <p className="text-sm text-muted-foreground mb-6">Update your password to keep your account secure.</p>
 
-      <div className="space-y-4 mb-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mb-6">
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Current Password</label>
           <Input
             type="password"
-            value={currentPw}
-            onChange={(e) => setCurrentPw(e.target.value)}
+            autoComplete="current-password"
             placeholder="Enter current password"
             icon={<Lock className="w-4 h-4" />}
+            {...register("currentPassword")}
           />
+          {errors.currentPassword && <p className="text-xs text-destructive">{errors.currentPassword.message}</p>}
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">New Password</label>
           <Input
             type="password"
-            value={newPw}
-            onChange={(e) => setNewPw(e.target.value)}
+            autoComplete="new-password"
             placeholder="At least 8 characters"
             icon={<Lock className="w-4 h-4" />}
+            {...register("newPassword")}
           />
+          {errors.newPassword && <p className="text-xs text-destructive">{errors.newPassword.message}</p>}
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Confirm New Password</label>
           <Input
             type="password"
-            value={confirmPw}
-            onChange={(e) => setConfirmPw(e.target.value)}
+            autoComplete="new-password"
             placeholder="Repeat new password"
             icon={<Lock className="w-4 h-4" />}
+            {...register("confirmPassword")}
           />
+          {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>}
         </div>
-      </div>
 
-      {error && <p className="text-sm text-destructive mb-4">{error}</p>}
-
-      <div className="flex items-center justify-between">
-        {saved && (
-          <span className="flex items-center gap-2 text-sm text-emerald-600 font-medium">
-            <CheckCircle2 className="w-4 h-4" /> Password updated!
-          </span>
-        )}
-        <Button onClick={handleSave} variant="outline" className="ml-auto">
-          Update Password
-        </Button>
-      </div>
+        <div className="flex items-center justify-between pt-2">
+          {saved && (
+            <span className="flex items-center gap-2 text-sm text-emerald-600 font-medium">
+              <CheckCircle2 className="w-4 h-4" /> Password updated!
+            </span>
+          )}
+          <Button type="submit" variant="outline" className="ml-auto">
+            Update Password
+          </Button>
+        </div>
+      </form>
     </Section>
   );
 }

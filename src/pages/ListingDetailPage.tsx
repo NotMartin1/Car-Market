@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { getListing, createInquiry, startConversation } from "@/lib/mock-api";
+import { getListing, startConversation } from "@/lib/mock-api";
 import { useMockAuth } from "@/contexts/mock-auth-context";
 import { useSaved } from "@/contexts/saved-context";
 import { Button } from "@/components/ui/button";
@@ -30,21 +30,13 @@ export default function ListingDetailPage() {
   const { toggle: toggleSaved, isSaved } = useSaved();
   const { toast } = useToast();
 
-  const [listing, setListing]               = useState<ListingWithSeller | null>(null);
-  const [isLoading, setIsLoading]           = useState(true);
-  const [error, setError]                   = useState(false);
-  const [activeImage, setActiveImage]       = useState(0);
-  const [inquiryMessage, setInquiryMessage] = useState("");
-  const [inquiryPhone, setInquiryPhone]     = useState("");
-  const [inquiryEmail, setInquiryEmail]     = useState(user?.email ?? "");
-  const [isSubmitting, setIsSubmitting]     = useState(false);
-  const [startingChat, setStartingChat]     = useState(false);
-
+  const [listing,       setListing]       = useState<ListingWithSeller | null>(null);
+  const [isLoading,     setIsLoading]     = useState(true);
+  const [error,         setError]         = useState(false);
+  const [activeImage,   setActiveImage]   = useState(0);
+  const [startingChat,  setStartingChat]  = useState(false);
   const [showOfferPanel, setShowOfferPanel] = useState(false);
-  const [offerAmount,    setOfferAmount]    = useState("");
-  const [offerMessage,   setOfferMessage]   = useState("");
-  const [offerSent,      setOfferSent]      = useState(false);
-  const [sendingOffer,   setSendingOffer]   = useState(false);
+  const [offerPanelKey,  setOfferPanelKey]  = useState(0);
 
   useEffect(() => {
     getListing(id)
@@ -77,39 +69,6 @@ export default function ListingDetailPage() {
 
   const isOwner = isAuthenticated && user?.id === listing?.sellerId;
   const saved   = isSaved(id);
-
-  const handleInquiry = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isAuthenticated) return login();
-    if (!inquiryMessage.trim()) return;
-    try {
-      setIsSubmitting(true);
-      await createInquiry(id, {
-        message: inquiryMessage,
-        contactEmail: inquiryEmail,
-        contactPhone: inquiryPhone || undefined,
-      });
-      toast({ title: "Inquiry sent!", description: "The seller will be notified." });
-      setInquiryMessage("");
-      setInquiryPhone("");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
-      toast({ title: "Failed to send", description: message, variant: "destructive" });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSubmitOffer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isAuthenticated) return login();
-    if (!offerAmount.trim()) return;
-    setSendingOffer(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSendingOffer(false);
-    setOfferSent(true);
-    toast({ title: "Offer submitted!", description: `Your offer of ${formatPrice(offerAmount)} has been sent to the seller.` });
-  };
 
   if (isLoading) {
     return (
@@ -226,34 +185,29 @@ export default function ListingDetailPage() {
                 startingChat={startingChat}
                 onStartChat={handleStartChat}
                 onToggleSaved={() => toggleSaved(id)}
-                onShowOffer={() => { setShowOfferPanel((v) => !v); setOfferSent(false); }}
+                onShowOffer={() => {
+                  setOfferPanelKey((k) => k + 1);
+                  setShowOfferPanel((v) => !v);
+                }}
                 onLogin={login}
               />
 
               {showOfferPanel && !isOwner && listing.status !== "sold" && (
                 <MakeOfferPanel
+                  key={offerPanelKey}
                   listingPrice={listing.price}
-                  offerAmount={offerAmount}
-                  setOfferAmount={setOfferAmount}
-                  offerMessage={offerMessage}
-                  setOfferMessage={setOfferMessage}
-                  offerSent={offerSent}
-                  sendingOffer={sendingOffer}
-                  onSubmit={handleSubmitOffer}
                   onClose={() => setShowOfferPanel(false)}
+                  isAuthenticated={isAuthenticated}
+                  onLogin={login}
                 />
               )}
 
               {!isOwner && listing.status !== "sold" && (
                 <QuickInquiryForm
-                  inquiryEmail={inquiryEmail}
-                  setInquiryEmail={setInquiryEmail}
-                  inquiryPhone={inquiryPhone}
-                  setInquiryPhone={setInquiryPhone}
-                  inquiryMessage={inquiryMessage}
-                  setInquiryMessage={setInquiryMessage}
-                  isSubmitting={isSubmitting}
-                  onSubmit={handleInquiry}
+                  listingId={id}
+                  defaultEmail={user?.email}
+                  isAuthenticated={isAuthenticated}
+                  onLogin={login}
                 />
               )}
 

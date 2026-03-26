@@ -1,17 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { SocialButton, Divider, Field, PasswordInput, Spinner, clearErr } from "./auth-shared";
+import { SocialButton, Divider, Field, PasswordInput, Spinner } from "./auth-shared";
 
 const PASSWORD_TESTS = [
   (p: string) => p.length >= 8,
   (p: string) => /[A-Z]/.test(p),
   (p: string) => /\d/.test(p),
 ];
+
+const schema = z.object({
+  firstName:       z.string().min(1, "Required."),
+  lastName:        z.string().min(1, "Required."),
+  email:           z.string().email("Enter a valid email address."),
+  password:        z.string().min(8, "At least 8 characters."),
+  confirmPassword: z.string(),
+}).refine((d) => d.password === d.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"],
+});
+
+type FormValues = z.infer<typeof schema>;
 
 type AuthStrings = {
   registerTitle: string;
@@ -52,37 +68,25 @@ export function RegisterForm({
   login: () => void;
   switchTab: () => void;
 }) {
-  const [firstName,  setFirstName]  = useState("");
-  const [lastName,   setLastName]   = useState("");
-  const [email,      setEmail]      = useState("");
-  const [password,   setPassword]   = useState("");
-  const [confirm,    setConfirm]    = useState("");
-  const [showPass,   setShowPass]   = useState(false);
-  const [showConf,   setShowConf]   = useState(false);
-  const [errors,     setErrors]     = useState<Record<string, string>>({});
-  const [isLoading,  setIsLoading]  = useState(false);
+  const [showPass, setShowPass] = useState(false);
+  const [showConf, setShowConf] = useState(false);
   const [socialLoad, setSocialLoad] = useState<"google" | "facebook" | null>(null);
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!firstName.trim())                e.firstName = "Required.";
-    if (!lastName.trim())                 e.lastName  = "Required.";
-    if (!email.trim())                    e.email     = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email     = "Enter a valid email address.";
-    if (!password)                        e.password  = "Password is required.";
-    else if (password.length < 8)         e.password  = "At least 8 characters.";
-    if (!confirm)                         e.confirm   = "Please confirm your password.";
-    else if (confirm !== password)        e.confirm   = "Passwords do not match.";
-    return e;
-  };
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  const handleSubmit = (ev: React.FormEvent) => {
-    ev.preventDefault();
-    const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
-    setErrors({});
-    setIsLoading(true);
-    setTimeout(() => { login(); onSuccess(); }, 900);
+  const password = watch("password") ?? "";
+  const confirmPassword = watch("confirmPassword") ?? "";
+
+  const onSubmit = async (_data: FormValues) => {
+    await new Promise((r) => setTimeout(r, 900));
+    login();
+    onSuccess();
   };
 
   const handleSocial = (provider: "google" | "facebook") => {
@@ -91,7 +95,7 @@ export function RegisterForm({
   };
 
   const passwordStrength = PASSWORD_TESTS.filter((fn) => fn(password)).length;
-  const busy = isLoading || socialLoad !== null;
+  const busy = isSubmitting || socialLoad !== null;
 
   const passwordRules = [
     { label: a.rule8chars,    ok: PASSWORD_TESTS[0](password) },
@@ -113,44 +117,47 @@ export function RegisterForm({
 
       <Divider text={a.orEmailReg} />
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <Field label={a.firstName} error={errors.firstName}>
+          <Field label={a.firstName} error={errors.firstName?.message}>
             <Input
               placeholder="John"
-              value={firstName}
-              onChange={(e) => { setFirstName(e.target.value); clearErr(setErrors, "firstName"); }}
               className={errors.firstName ? "border-destructive" : ""}
+              {...register("firstName")}
             />
           </Field>
-          <Field label={a.lastName} error={errors.lastName}>
+          <Field label={a.lastName} error={errors.lastName?.message}>
             <Input
               placeholder="Doe"
-              value={lastName}
-              onChange={(e) => { setLastName(e.target.value); clearErr(setErrors, "lastName"); }}
               className={errors.lastName ? "border-destructive" : ""}
+              {...register("lastName")}
             />
           </Field>
         </div>
 
-        <Field label={a.email} error={errors.email}>
+        <Field label={a.email} error={errors.email?.message}>
           <Input
             type="email"
             placeholder={a.emailPlaceholder}
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); clearErr(setErrors, "email"); }}
             className={errors.email ? "border-destructive" : ""}
+            {...register("email")}
           />
         </Field>
 
-        <Field label={a.password} error={errors.password}>
-          <PasswordInput
-            placeholder={a.passwordCreate}
-            value={password}
-            onChange={(v) => { setPassword(v); clearErr(setErrors, "password"); }}
-            show={showPass}
-            onToggle={() => setShowPass((s) => !s)}
-            hasError={!!errors.password}
+        <Field label={a.password} error={errors.password?.message}>
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <PasswordInput
+                placeholder={a.passwordCreate}
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                show={showPass}
+                onToggle={() => setShowPass((s) => !s)}
+                hasError={!!errors.password}
+              />
+            )}
           />
           {password && (
             <div className="mt-2 space-y-1.5">
@@ -179,17 +186,23 @@ export function RegisterForm({
           )}
         </Field>
 
-        <Field label={a.confirmPassword} error={errors.confirm}>
-          <PasswordInput
-            placeholder={a.passwordRepeat}
-            value={confirm}
-            onChange={(v) => { setConfirm(v); clearErr(setErrors, "confirm"); }}
-            show={showConf}
-            onToggle={() => setShowConf((s) => !s)}
-            hasError={!!errors.confirm}
-            extraClass={!errors.confirm && confirm && confirm === password ? "border-emerald-500" : ""}
+        <Field label={a.confirmPassword} error={errors.confirmPassword?.message}>
+          <Controller
+            name="confirmPassword"
+            control={control}
+            render={({ field }) => (
+              <PasswordInput
+                placeholder={a.passwordRepeat}
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                show={showConf}
+                onToggle={() => setShowConf((s) => !s)}
+                hasError={!!errors.confirmPassword}
+                extraClass={!errors.confirmPassword && confirmPassword && confirmPassword === password ? "border-emerald-500" : ""}
+              />
+            )}
           />
-          {!errors.confirm && confirm && confirm === password && (
+          {!errors.confirmPassword && confirmPassword && confirmPassword === password && (
             <p className="text-xs text-emerald-600 flex items-center gap-1 mt-1">
               <Check className="w-3 h-3" /> {a.passwordsMatch}
             </p>
@@ -203,9 +216,9 @@ export function RegisterForm({
         </p>
 
         <Button type="submit" className="w-full gap-2" disabled={busy}>
-          <Spinner show={isLoading} />
-          {!isLoading && <ArrowRight className="w-4 h-4" />}
-          {isLoading ? a.creatingAccount : a.createAccount}
+          <Spinner show={isSubmitting} />
+          {!isSubmitting && <ArrowRight className="w-4 h-4" />}
+          {isSubmitting ? a.creatingAccount : a.createAccount}
         </Button>
       </form>
 

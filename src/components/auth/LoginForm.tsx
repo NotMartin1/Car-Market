@@ -1,10 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SocialButton, Divider, Field, PasswordInput, Spinner, clearErr } from "./auth-shared";
+import { SocialButton, Divider, Field, PasswordInput, Spinner } from "./auth-shared";
+
+const schema = z.object({
+  email:    z.string().email("Enter a valid email address."),
+  password: z.string().min(1, "Password is required."),
+});
+
+type FormValues = z.infer<typeof schema>;
 
 type AuthStrings = {
   loginTitle: string;
@@ -34,28 +44,20 @@ export function LoginForm({
   login: () => void;
   switchTab: () => void;
 }) {
-  const [email,      setEmail]      = useState("");
-  const [password,   setPassword]   = useState("");
   const [showPass,   setShowPass]   = useState(false);
-  const [errors,     setErrors]     = useState<Record<string, string>>({});
-  const [isLoading,  setIsLoading]  = useState(false);
   const [socialLoad, setSocialLoad] = useState<"google" | "facebook" | null>(null);
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!email.trim())                    e.email    = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email    = "Enter a valid email address.";
-    if (!password)                        e.password = "Password is required.";
-    return e;
-  };
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  const handleSubmit = (ev: React.FormEvent) => {
-    ev.preventDefault();
-    const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
-    setErrors({});
-    setIsLoading(true);
-    setTimeout(() => { login(); onSuccess(); }, 800);
+  const onSubmit = async (_data: FormValues) => {
+    await new Promise((r) => setTimeout(r, 800));
+    login();
+    onSuccess();
   };
 
   const handleSocial = (provider: "google" | "facebook") => {
@@ -63,7 +65,7 @@ export function LoginForm({
     setTimeout(() => { login(); onSuccess(); }, 900);
   };
 
-  const busy = isLoading || socialLoad !== null;
+  const busy = isSubmitting || socialLoad !== null;
 
   return (
     <div className="space-y-5">
@@ -79,36 +81,41 @@ export function LoginForm({
 
       <Divider text={a.orEmail} />
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Field label={a.email} error={errors.email}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <Field label={a.email} error={errors.email?.message}>
           <Input
             type="email"
             placeholder={a.emailPlaceholder}
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); clearErr(setErrors, "email"); }}
             className={errors.email ? "border-destructive" : ""}
+            {...register("email")}
           />
         </Field>
 
         <Field
           label={a.password}
           labelRight={<button type="button" className="text-xs text-primary hover:underline">{a.forgotPassword}</button>}
-          error={errors.password}
+          error={errors.password?.message}
         >
-          <PasswordInput
-            placeholder={a.passwordPlaceholder}
-            value={password}
-            onChange={(v) => { setPassword(v); clearErr(setErrors, "password"); }}
-            show={showPass}
-            onToggle={() => setShowPass((s) => !s)}
-            hasError={!!errors.password}
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <PasswordInput
+                placeholder={a.passwordPlaceholder}
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                show={showPass}
+                onToggle={() => setShowPass((s) => !s)}
+                hasError={!!errors.password}
+              />
+            )}
           />
         </Field>
 
         <Button type="submit" className="w-full gap-2" disabled={busy}>
-          <Spinner show={isLoading} />
-          {!isLoading && <ArrowRight className="w-4 h-4" />}
-          {isLoading ? a.signingIn : a.signIn}
+          <Spinner show={isSubmitting} />
+          {!isSubmitting && <ArrowRight className="w-4 h-4" />}
+          {isSubmitting ? a.signingIn : a.signIn}
         </Button>
       </form>
 

@@ -1,27 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useMockAuth } from "@/contexts/mock-auth-context";
 import { createListing } from "@/lib/mock-api";
-import type { CreateListingInput } from "@/lib/mock-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Plus, X, AlertCircle } from "lucide-react";
 
+const VEHICLE_TYPES = ["car", "suv", "truck", "motorcycle", "van", "rv", "boat", "other"] as const;
+const CONDITIONS    = ["excellent", "good", "fair", "poor"] as const;
+
+const schema = z.object({
+  make:         z.string().min(1, "Make is required."),
+  model:        z.string().min(1, "Model is required."),
+  year:         z.coerce.number().min(1900, "Min year 1900.").max(2027, "Max year 2027."),
+  price:        z.coerce.number().min(1, "Price must be at least $1."),
+  mileage:      z.coerce.number().min(0, "Mileage cannot be negative."),
+  location:     z.string().min(1, "Location is required."),
+  vehicleType:  z.enum(VEHICLE_TYPES),
+  condition:    z.enum(CONDITIONS),
+  transmission: z.string().optional(),
+  fuelType:     z.string().optional(),
+  color:        z.string().optional(),
+  description:  z.string().min(1, "Description is required."),
+  images:       z.array(z.object({ url: z.string() })).min(1),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+const selectClass = "w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 appearance-none";
+
 export default function PostListingPage() {
   const { isAuthenticated, login } = useMockAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [isPending, setIsPending] = useState(false);
 
-  const [formData, setFormData] = useState<Partial<CreateListingInput>>({
-    condition: "good",
-    images: [""],
-    vehicleType: "car",
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      condition:   "good",
+      vehicleType: "car",
+      images:      [{ url: "" }],
+    },
   });
+
+  const { fields, append, remove } = useFieldArray({ control, name: "images" });
 
   if (!isAuthenticated) {
     return (
@@ -40,48 +73,17 @@ export default function PostListingPage() {
     );
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "number" ? Number(value) : value,
-    }));
-  };
-
-  const handleImageChange = (index: number, value: string) => {
-    const newImages = [...(formData.images || [])];
-    newImages[index] = value;
-    setFormData({ ...formData, images: newImages });
-  };
-
-  const addImageField = () => {
-    if ((formData.images?.length || 0) < 10) {
-      setFormData({ ...formData, images: [...(formData.images || []), ""] });
-    }
-  };
-
-  const removeImageField = (index: number) => {
-    const newImages = formData.images?.filter((_, i) => i !== index);
-    setFormData({ ...formData, images: newImages?.length ? newImages : [""] });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsPending(true);
+  const onSubmit = async (data: FormValues) => {
     try {
-      const cleanedData = {
-        ...formData,
-        images: formData.images?.filter((img) => img.trim() !== "") || [],
-      } as CreateListingInput;
-
-      const result = await createListing(cleanedData);
+      const result = await createListing({
+        ...data,
+        images: data.images.map((img) => img.url).filter((u) => u.trim() !== ""),
+      } as any);
       toast({ title: "Listing Created!", description: "Your car is now live on the marketplace." });
       router.push(`/listings/${result.id}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       toast({ title: "Error creating listing", description: message, variant: "destructive" });
-    } finally {
-      setIsPending(false);
     }
   };
 
@@ -95,34 +97,40 @@ export default function PostListingPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Basic Details */}
           <div className="bg-card p-8 rounded-3xl border border-border shadow-sm">
             <h2 className="text-xl font-bold mb-6 pb-4 border-b border-border">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Make *</label>
-                <Input required name="make" placeholder="e.g. Toyota" onChange={handleChange} />
+                <Input placeholder="e.g. Toyota" {...register("make")} />
+                {errors.make && <p className="text-xs text-destructive">{errors.make.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Model *</label>
-                <Input required name="model" placeholder="e.g. Camry" onChange={handleChange} />
+                <Input placeholder="e.g. Camry" {...register("model")} />
+                {errors.model && <p className="text-xs text-destructive">{errors.model.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Year *</label>
-                <Input required type="number" min="1900" max="2026" name="year" placeholder="2020" onChange={handleChange} />
+                <Input type="number" min="1900" max="2027" placeholder="2020" {...register("year")} />
+                {errors.year && <p className="text-xs text-destructive">{errors.year.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price ($) *</label>
-                <Input required type="number" min="1" name="price" placeholder="15000" onChange={handleChange} />
+                <Input type="number" min="1" placeholder="15000" {...register("price")} />
+                {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Mileage (mi) *</label>
-                <Input required type="number" min="0" name="mileage" placeholder="45000" onChange={handleChange} />
+                <Input type="number" min="0" placeholder="45000" {...register("mileage")} />
+                {errors.mileage && <p className="text-xs text-destructive">{errors.mileage.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Location (City, State) *</label>
-                <Input required name="location" placeholder="San Francisco, CA" onChange={handleChange} />
+                <Input placeholder="San Francisco, CA" {...register("location")} />
+                {errors.location && <p className="text-xs text-destructive">{errors.location.message}</p>}
               </div>
             </div>
           </div>
@@ -133,13 +141,7 @@ export default function PostListingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Vehicle Type *</label>
-                <select
-                  required
-                  name="vehicleType"
-                  onChange={handleChange}
-                  value={formData.vehicleType || ""}
-                  className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
-                >
+                <select className={selectClass} {...register("vehicleType")}>
                   <option value="">Select type...</option>
                   <option value="car">Car</option>
                   <option value="suv">SUV</option>
@@ -153,13 +155,7 @@ export default function PostListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Condition *</label>
-                <select
-                  required
-                  name="condition"
-                  onChange={handleChange}
-                  value={formData.condition}
-                  className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
-                >
+                <select className={selectClass} {...register("condition")}>
                   <option value="excellent">Excellent</option>
                   <option value="good">Good</option>
                   <option value="fair">Fair</option>
@@ -168,11 +164,7 @@ export default function PostListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Transmission</label>
-                <select
-                  name="transmission"
-                  onChange={handleChange}
-                  className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
-                >
+                <select className={selectClass} {...register("transmission")}>
                   <option value="">Select...</option>
                   <option value="automatic">Automatic</option>
                   <option value="manual">Manual</option>
@@ -180,11 +172,7 @@ export default function PostListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Fuel Type</label>
-                <select
-                  name="fuelType"
-                  onChange={handleChange}
-                  className="w-full h-12 rounded-xl border-2 border-border bg-background px-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10"
-                >
+                <select className={selectClass} {...register("fuelType")}>
                   <option value="">Select...</option>
                   <option value="gasoline">Gasoline</option>
                   <option value="diesel">Diesel</option>
@@ -194,7 +182,7 @@ export default function PostListingPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Color</label>
-                <Input name="color" placeholder="e.g. Silver" onChange={handleChange} />
+                <Input placeholder="e.g. Silver" {...register("color")} />
               </div>
             </div>
           </div>
@@ -203,12 +191,11 @@ export default function PostListingPage() {
           <div className="bg-card p-8 rounded-3xl border border-border shadow-sm">
             <h2 className="text-xl font-bold mb-6 pb-4 border-b border-border">Description *</h2>
             <textarea
-              required
-              name="description"
-              onChange={handleChange}
               placeholder="Tell buyers about your car. Highlight features, history, and reasons for selling..."
-              className="w-full min-h-[200px] rounded-xl border-2 border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 resize-y"
+              className={`w-full min-h-[200px] rounded-xl border-2 bg-background px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 resize-y ${errors.description ? "border-destructive" : "border-border"}`}
+              {...register("description")}
             />
+            {errors.description && <p className="text-xs text-destructive mt-1">{errors.description.message}</p>}
           </div>
 
           {/* Images */}
@@ -222,30 +209,28 @@ export default function PostListingPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={addImageField}
-                disabled={(formData.images?.length || 0) >= 10}
+                onClick={() => fields.length < 10 && append({ url: "" })}
+                disabled={fields.length >= 10}
               >
                 <Plus className="w-4 h-4 mr-1" /> Add Image
               </Button>
             </div>
 
             <div className="space-y-3">
-              {formData.images?.map((url, index) => (
-                <div key={index} className="flex gap-3">
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex gap-3">
                   <Input
-                    required={index === 0}
                     placeholder="https://..."
-                    value={url}
-                    onChange={(e) => handleImageChange(index, e.target.value)}
                     icon={<Upload className="w-4 h-4" />}
+                    {...register(`images.${index}.url`)}
                   />
-                  {formData.images!.length > 1 && (
+                  {fields.length > 1 && (
                     <Button
                       type="button"
                       variant="destructive"
                       size="icon"
                       className="shrink-0"
-                      onClick={() => removeImageField(index)}
+                      onClick={() => remove(index)}
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -263,9 +248,9 @@ export default function PostListingPage() {
               type="submit"
               size="lg"
               className="px-10 text-lg shadow-xl shadow-primary/20"
-              disabled={isPending}
+              disabled={isSubmitting}
             >
-              {isPending ? "Publishing..." : "Post Listing"}
+              {isSubmitting ? "Publishing..." : "Post Listing"}
             </Button>
           </div>
         </form>
