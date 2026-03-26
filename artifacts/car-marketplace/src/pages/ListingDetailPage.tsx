@@ -6,38 +6,21 @@ import { getListing, createInquiry, startConversation } from "@/lib/mock-api";
 import { useMockAuth } from "@/contexts/mock-auth-context";
 import { useSaved } from "@/contexts/saved-context";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice, formatMileage } from "@/lib/utils";
-import {
-  MapPin, Calendar, Gauge, Fuel, Settings, Palette, FileText,
-  CheckCircle2, User, ShieldCheck, Tag, MessageSquare, Heart,
-  Star, TrendingDown, DollarSign, X,
-} from "lucide-react";
+import { formatPrice } from "@/lib/utils";
+import { MapPin, Tag, Star, TrendingDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import type { MockListing, MockUser } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
+import { ImageGallery } from "@/components/listing-detail/ImageGallery";
+import { SpecsGrid } from "@/components/listing-detail/SpecsGrid";
+import { SellerCard } from "@/components/listing-detail/SellerCard";
+import { MakeOfferPanel } from "@/components/listing-detail/MakeOfferPanel";
+import { QuickInquiryForm } from "@/components/listing-detail/QuickInquiryForm";
+import { SafetyBanner } from "@/components/listing-detail/SafetyBanner";
 
 type ListingWithSeller = MockListing & { seller: MockUser | null };
-
-function StarRating({ rating, count }: { rating: number; count: number }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((s) => (
-          <Star
-            key={s}
-            className={`w-3.5 h-3.5 ${s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-border fill-border"}`}
-          />
-        ))}
-      </div>
-      <span className="font-semibold text-sm">{rating.toFixed(1)}</span>
-      <span className="text-muted-foreground text-xs">({count})</span>
-    </div>
-  );
-}
 
 export default function ListingDetailPage() {
   const params = useParams<{ id: string }>();
@@ -47,28 +30,26 @@ export default function ListingDetailPage() {
   const { toggle: toggleSaved, isSaved } = useSaved();
   const { toast } = useToast();
 
-  const [listing, setListing]           = useState<ListingWithSeller | null>(null);
-  const [isLoading, setIsLoading]       = useState(true);
-  const [error, setError]               = useState(false);
-  const [activeImage, setActiveImage]   = useState(0);
+  const [listing, setListing]               = useState<ListingWithSeller | null>(null);
+  const [isLoading, setIsLoading]           = useState(true);
+  const [error, setError]                   = useState(false);
+  const [activeImage, setActiveImage]       = useState(0);
   const [inquiryMessage, setInquiryMessage] = useState("");
   const [inquiryPhone, setInquiryPhone]     = useState("");
   const [inquiryEmail, setInquiryEmail]     = useState(user?.email ?? "");
   const [isSubmitting, setIsSubmitting]     = useState(false);
   const [startingChat, setStartingChat]     = useState(false);
 
-  // Make an Offer
   const [showOfferPanel, setShowOfferPanel] = useState(false);
-  const [offerAmount, setOfferAmount]       = useState("");
-  const [offerMessage, setOfferMessage]     = useState("");
-  const [offerSent, setOfferSent]           = useState(false);
-  const [sendingOffer, setSendingOffer]      = useState(false);
+  const [offerAmount,    setOfferAmount]    = useState("");
+  const [offerMessage,   setOfferMessage]   = useState("");
+  const [offerSent,      setOfferSent]      = useState(false);
+  const [sendingOffer,   setSendingOffer]   = useState(false);
 
   useEffect(() => {
     getListing(id)
       .then((data) => {
         setListing(data as ListingWithSeller);
-        // Track recently viewed
         try {
           const key = "automarket_recent";
           const raw = localStorage.getItem(key);
@@ -156,7 +137,9 @@ export default function ListingDetailPage() {
     );
   }
 
-  const images = listing.images?.length > 0 ? listing.images : ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=80"];
+  const images = listing.images?.length > 0
+    ? listing.images
+    : ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=80"];
   const seller = listing.seller;
   const priceReduced = !!listing.originalPrice && Number(listing.originalPrice) > Number(listing.price);
   const priceSaving  = priceReduced ? Number(listing.originalPrice) - Number(listing.price) : 0;
@@ -214,52 +197,16 @@ export default function ListingDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Gallery */}
-              <div className="bg-card p-2 rounded-3xl border border-border/50 shadow-sm">
-                <div className="aspect-[4/3] sm:aspect-[16/9] rounded-2xl overflow-hidden mb-2 relative bg-muted">
-                  <img src={images[activeImage]} alt="Car" className="w-full h-full object-cover" />
-                  {/* Save button overlay */}
-                  <button
-                    onClick={() => toggleSaved(id)}
-                    className={cn(
-                      "absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-lg border transition-colors",
-                      saved ? "bg-red-500 border-red-500 text-white" : "bg-white/90 border-white/60 text-foreground/70 hover:text-red-500",
-                    )}
-                  >
-                    <Heart className={cn("w-5 h-5", saved && "fill-current")} />
-                  </button>
-                </div>
-                {images.length > 1 && (
-                  <div className="flex overflow-x-auto gap-2 p-2 no-scrollbar">
-                    {images.map((img, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveImage(i)}
-                        className={`relative w-24 h-16 shrink-0 rounded-xl overflow-hidden transition-all ${activeImage === i ? "ring-2 ring-accent ring-offset-2 scale-95" : "opacity-70 hover:opacity-100"}`}
-                      >
-                        <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ImageGallery
+                images={images}
+                activeImage={activeImage}
+                setActiveImage={setActiveImage}
+                saved={saved}
+                onToggleSaved={() => toggleSaved(id)}
+              />
 
-              {/* Specs Grid */}
-              <div className="bg-card rounded-3xl p-8 border border-border/50 shadow-sm">
-                <h3 className="text-2xl font-display font-bold mb-6 flex items-center gap-2">
-                  <Settings className="w-6 h-6 text-accent" /> Specifications
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                  <SpecItem icon={Calendar}  label="Year"         value={listing.year} />
-                  <SpecItem icon={Gauge}     label="Mileage"      value={formatMileage(listing.mileage)} />
-                  <SpecItem icon={Fuel}      label="Fuel Type"    value={listing.fuelType || "N/A"} className="capitalize" />
-                  <SpecItem icon={Settings}  label="Transmission" value={listing.transmission || "N/A"} className="capitalize" />
-                  <SpecItem icon={Palette}   label="Color"        value={listing.color || "N/A"} />
-                  <SpecItem icon={FileText}  label="VIN"          value={listing.vin || "N/A"} />
-                </div>
-              </div>
+              <SpecsGrid listing={listing} />
 
-              {/* Description */}
               <div className="bg-card rounded-3xl p-8 border border-border/50 shadow-sm">
                 <h3 className="text-2xl font-display font-bold mb-6">Seller's Description</h3>
                 <div className="prose prose-slate max-w-none text-muted-foreground whitespace-pre-line leading-relaxed">
@@ -270,203 +217,51 @@ export default function ListingDetailPage() {
 
             {/* Right Column */}
             <div className="space-y-5">
-              {/* Seller Card */}
-              <div className="bg-card rounded-3xl p-6 border border-border shadow-md">
-                <h3 className="font-display font-bold text-lg mb-4">About the Seller</h3>
-                <Link href={`/sellers/${seller?.id}`} className="flex items-center gap-4 mb-4 pb-4 border-b border-border hover:bg-muted/50 -mx-2 px-2 py-2 rounded-2xl transition-colors">
-                  <div className="w-14 h-14 rounded-2xl bg-secondary overflow-hidden border-2 border-background shadow-sm shrink-0">
-                    {seller?.profileImageUrl ? (
-                      <img src={seller.profileImageUrl} alt="Seller" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        <User className="w-7 h-7" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-bold text-foreground">{seller?.firstName} {seller?.lastName}</p>
-                      {seller?.verified && <ShieldCheck className="w-4 h-4 text-primary shrink-0" title="Verified Seller" />}
-                    </div>
-                    <p className="text-muted-foreground text-xs">@{seller?.username}</p>
-                    {seller?.rating != null && (
-                      <div className="mt-1">
-                        <StarRating rating={seller.rating} count={seller.ratingCount ?? 0} />
-                      </div>
-                    )}
-                  </div>
-                </Link>
+              <SellerCard
+                seller={seller}
+                listing={listing}
+                isOwner={isOwner}
+                isAuthenticated={isAuthenticated}
+                saved={saved}
+                startingChat={startingChat}
+                onStartChat={handleStartChat}
+                onToggleSaved={() => toggleSaved(id)}
+                onShowOffer={() => { setShowOfferPanel((v) => !v); setOfferSent(false); }}
+                onLogin={login}
+              />
 
-                {seller?.verified && (
-                  <div className="flex items-center gap-2 mb-4 text-xs text-primary font-semibold bg-primary/8 px-3 py-2 rounded-xl border border-primary/15">
-                    <ShieldCheck className="w-4 h-4" /> Verified Seller — Identity confirmed
-                  </div>
-                )}
-
-                {isOwner ? (
-                  <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10">
-                    <p className="text-sm font-medium mb-3">This is your listing.</p>
-                    <Link href="/my-listings">
-                      <Button className="w-full" variant="outline">Manage Listing</Button>
-                    </Link>
-                  </div>
-                ) : listing.status === "sold" ? (
-                  <p className="text-sm text-center text-destructive font-medium bg-destructive/10 py-3 px-4 rounded-xl">
-                    This vehicle has been sold.
-                  </p>
-                ) : isAuthenticated ? (
-                  <div className="space-y-2">
-                    <Button
-                      className="w-full shadow-lg shadow-primary/20 gap-2"
-                      size="lg"
-                      onClick={handleStartChat}
-                      disabled={startingChat}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      {startingChat ? "Opening Chat…" : "Chat with Seller"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full gap-2"
-                      onClick={() => { setShowOfferPanel((v) => !v); setOfferSent(false); }}
-                    >
-                      <DollarSign className="w-4 h-4" />
-                      Make an Offer
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className={cn("w-full gap-2 text-sm", saved ? "text-red-500 hover:text-red-600" : "text-muted-foreground")}
-                      onClick={() => toggleSaved(id)}
-                    >
-                      <Heart className={cn("w-4 h-4", saved && "fill-current")} />
-                      {saved ? "Saved — click to remove" : "Save this listing"}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="bg-muted p-4 rounded-2xl text-center">
-                    <p className="text-sm text-muted-foreground mb-4">Sign in to message the seller or make an offer.</p>
-                    <Button onClick={login} className="w-full">Sign In to Contact</Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Make an Offer Panel */}
               {showOfferPanel && !isOwner && listing.status !== "sold" && (
-                <div className="bg-card rounded-3xl p-6 border border-primary/20 shadow-md">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-display font-bold text-lg flex items-center gap-2">
-                      <DollarSign className="w-5 h-5 text-primary" /> Make an Offer
-                    </h3>
-                    <button onClick={() => setShowOfferPanel(false)} className="text-muted-foreground hover:text-foreground transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {offerSent ? (
-                    <div className="text-center py-4">
-                      <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3">
-                        <CheckCircle2 className="w-6 h-6" />
-                      </div>
-                      <p className="font-semibold text-foreground">Offer Submitted!</p>
-                      <p className="text-sm text-muted-foreground mt-1">The seller will review your offer and respond.</p>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleSubmitOffer} className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-muted-foreground mb-1.5">Your Offer Amount</label>
-                        <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <Input
-                            type="number"
-                            placeholder={String(Math.round(Number(listing.price) * 0.95))}
-                            value={offerAmount}
-                            onChange={(e) => setOfferAmount(e.target.value)}
-                            className="pl-8"
-                            min="1"
-                            required
-                          />
-                        </div>
-                        {offerAmount && Number(offerAmount) < Number(listing.price) && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            That's {formatPrice(String(Number(listing.price) - Number(offerAmount)))} below asking price.
-                          </p>
-                        )}
-                      </div>
-                      <textarea
-                        placeholder="Add a message to your offer (optional)"
-                        value={offerMessage}
-                        onChange={(e) => setOfferMessage(e.target.value)}
-                        className="w-full min-h-[80px] rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 resize-none"
-                      />
-                      <Button type="submit" className="w-full gap-2" disabled={sendingOffer}>
-                        {sendingOffer ? "Sending…" : "Submit Offer"}
-                      </Button>
-                      <p className="text-xs text-muted-foreground text-center">
-                        The seller will see your offer and can accept, decline, or counter.
-                      </p>
-                    </form>
-                  )}
-                </div>
+                <MakeOfferPanel
+                  listingPrice={listing.price}
+                  offerAmount={offerAmount}
+                  setOfferAmount={setOfferAmount}
+                  offerMessage={offerMessage}
+                  setOfferMessage={setOfferMessage}
+                  offerSent={offerSent}
+                  sendingOffer={sendingOffer}
+                  onSubmit={handleSubmitOffer}
+                  onClose={() => setShowOfferPanel(false)}
+                />
               )}
 
-              {/* Quick Inquiry Form */}
               {!isOwner && listing.status !== "sold" && (
-                <div className="bg-card rounded-3xl p-6 border border-border shadow-sm">
-                  <h3 className="font-display font-bold text-lg mb-4">Send Quick Inquiry</h3>
-                  <form onSubmit={handleInquiry} className="space-y-3">
-                    <Input
-                      type="email"
-                      placeholder="Your email"
-                      value={inquiryEmail}
-                      onChange={(e) => setInquiryEmail(e.target.value)}
-                      required
-                    />
-                    <Input
-                      placeholder="Phone (optional)"
-                      value={inquiryPhone}
-                      onChange={(e) => setInquiryPhone(e.target.value)}
-                    />
-                    <textarea
-                      required
-                      placeholder="Your message to the seller..."
-                      value={inquiryMessage}
-                      onChange={(e) => setInquiryMessage(e.target.value)}
-                      className="w-full min-h-[100px] rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 resize-y"
-                    />
-                    <Button type="submit" className="w-full gap-2" disabled={isSubmitting}>
-                      {isSubmitting ? "Sending…" : "Send Inquiry"}
-                    </Button>
-                  </form>
-                </div>
+                <QuickInquiryForm
+                  inquiryEmail={inquiryEmail}
+                  setInquiryEmail={setInquiryEmail}
+                  inquiryPhone={inquiryPhone}
+                  setInquiryPhone={setInquiryPhone}
+                  inquiryMessage={inquiryMessage}
+                  setInquiryMessage={setInquiryMessage}
+                  isSubmitting={isSubmitting}
+                  onSubmit={handleInquiry}
+                />
               )}
 
-              {/* Safety banner */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-3xl p-5">
-                <h4 className="font-bold text-blue-900 dark:text-blue-300 flex items-center gap-2 mb-2">
-                  <ShieldCheck className="w-5 h-5" /> Safety Tips
-                </h4>
-                <ul className="text-sm text-blue-800/80 dark:text-blue-200/80 space-y-1.5 list-disc pl-5 marker:text-blue-400">
-                  <li>Never pay in advance</li>
-                  <li>Meet in a public place</li>
-                  <li>Test drive before buying</li>
-                  <li>Verify VIN before purchase</li>
-                </ul>
-              </div>
+              <SafetyBanner />
             </div>
           </div>
         </div>
       </div>
     </AppLayout>
-  );
-}
-
-function SpecItem({
-  icon: Icon, label, value, className,
-}: { icon: React.ElementType; label: string; value: string | number; className?: string }) {
-  return (
-    <div>
-      <div className="flex items-center gap-2 text-muted-foreground mb-1 text-sm"><Icon className="w-4 h-4" /> {label}</div>
-      <div className={`font-semibold text-foreground text-lg ${className || ""}`}>{value}</div>
-    </div>
   );
 }
