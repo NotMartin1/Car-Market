@@ -314,18 +314,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.90.21
         version: 5.90.21(react@19.1.0)
-      '@workspace/api-client-react':
-        specifier: workspace:*
-        version: link:../../lib/api-client-react
-      '@workspace/api-zod':
-        specifier: workspace:*
-        version: link:../../lib/api-zod
-      '@workspace/db':
-        specifier: workspace:*
-        version: link:../../lib/db
-      '@workspace/replit-auth-web':
-        specifier: workspace:*
-        version: link:../../lib/replit-auth-web
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
