@@ -21,7 +21,7 @@ export function UserMenu({
   setOpen: (v: boolean) => void;
   logout: () => void;
   t: { nav: { myListings: string; messages: string; accountSettings: string; signOut: string; postAd: string } };
-  menuRef: React.RefObject<HTMLDivElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
     <>

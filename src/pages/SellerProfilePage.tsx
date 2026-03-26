@@ -84,7 +84,7 @@ export default function SellerProfilePage() {
                   {seller?.firstName} {seller?.lastName}
                 </h1>
                 {seller?.verified && (
-                  <ShieldCheck className="w-5 h-5 text-primary" title="Verified Seller" />
+                  <ShieldCheck className="w-5 h-5 text-primary" aria-label="Verified Seller" />
                 )}
               </div>
               <p className="text-white/50 text-sm mb-2">@{seller?.username}</p>

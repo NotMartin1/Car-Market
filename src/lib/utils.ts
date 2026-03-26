@@ -5,16 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(price: number): string {
+export function formatPrice(price: number | string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
-  }).format(price);
+  }).format(Number(price));
 }
 
-export function formatMileage(mileage: number): string {
+export function formatMileage(mileage: number | string): string {
   return new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 0,
-  }).format(mileage) + " mi";
+  }).format(Number(mileage)) + " mi";
 }

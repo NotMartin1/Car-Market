@@ -40,6 +40,7 @@ export type ListingFilters = {
   model?: string;
   status?: string;
   vehicleType?: string;
+  condition?: string;
   location?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -58,6 +59,7 @@ export async function getListings(filters: ListingFilters = {}) {
   if (filters.location) results = results.filter((l) => l.location.toLowerCase().includes(filters.location!.toLowerCase()));
   if (filters.minPrice != null) results = results.filter((l) => Number(l.price) >= filters.minPrice!);
   if (filters.maxPrice != null) results = results.filter((l) => Number(l.price) <= filters.maxPrice!);
+  if (filters.condition) results = results.filter((l) => l.condition === filters.condition);
   if (filters.minYear != null) results = results.filter((l) => l.year >= filters.minYear!);
   if (filters.maxYear != null) results = results.filter((l) => l.year <= filters.maxYear!);
   if (filters.limit) results = results.slice(0, filters.limit);

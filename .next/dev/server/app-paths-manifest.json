@@ -1,7 +1,6 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/account/page": "app/account/page.js",
-  "/page": "app/page.js",
-  "/post/page": "app/post/page.js",
-  "/saved/page": "app/saved/page.js"
+  "/listings/page": "app/listings/page.js",
+  "/messages/page": "app/messages/page.js",
+  "/my-listings/page": "app/my-listings/page.js",
+  "/page": "app/page.js"
 }

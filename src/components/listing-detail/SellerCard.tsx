@@ -66,7 +66,7 @@ export function SellerCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <p className="font-bold text-foreground">{seller?.firstName} {seller?.lastName}</p>
-            {seller?.verified && <ShieldCheck className="w-4 h-4 text-primary shrink-0" title="Verified Seller" />}
+            {seller?.verified && <ShieldCheck className="w-4 h-4 text-primary shrink-0" aria-label="Verified Seller" />}
           </div>
           <p className="text-muted-foreground text-xs">@{seller?.username}</p>
           {seller?.rating != null && (

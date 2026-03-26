@@ -38,7 +38,7 @@ export function NotificationBell({
   markAllRead: () => void;
   isOpen: boolean;
   setOpen: (v: boolean) => void;
-  menuRef: React.RefObject<HTMLDivElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
     <div className="relative" ref={menuRef}>

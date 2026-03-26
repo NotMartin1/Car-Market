@@ -1588,12 +1588,12 @@ function formatPrice(price) {
         style: "currency",
         currency: "USD",
         maximumFractionDigits: 0
-    }).format(price);
+    }).format(Number(price));
 }
 function formatMileage(mileage) {
     return new Intl.NumberFormat("en-US", {
         maximumFractionDigits: 0
-    }).format(mileage) + " mi";
+    }).format(Number(mileage)) + " mi";
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
@@ -2987,6 +2987,7 @@ async function getListings(filters = {}) {
     if (filters.location) results = results.filter((l)=>l.location.toLowerCase().includes(filters.location.toLowerCase()));
     if (filters.minPrice != null) results = results.filter((l)=>Number(l.price) >= filters.minPrice);
     if (filters.maxPrice != null) results = results.filter((l)=>Number(l.price) <= filters.maxPrice);
+    if (filters.condition) results = results.filter((l)=>l.condition === filters.condition);
     if (filters.minYear != null) results = results.filter((l)=>l.year >= filters.minYear);
     if (filters.maxYear != null) results = results.filter((l)=>l.year <= filters.maxYear);
     if (filters.limit) results = results.slice(0, filters.limit);

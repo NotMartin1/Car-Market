@@ -24,7 +24,7 @@ export function FloatingChat() {
     setLoading(true);
     getConversations()
       .then((data) => {
-        const { conversations } = data as {
+        const { conversations } = data as unknown as {
           conversations: (ConvSummary & {
             buyerId: string;
             sellerId: string;

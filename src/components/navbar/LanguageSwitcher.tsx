@@ -20,7 +20,7 @@ export function LanguageSwitcher({
   setLang: (l: Lang) => void;
   isOpen: boolean;
   setOpen: (v: boolean) => void;
-  menuRef: React.RefObject<HTMLDivElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const currentLang = LANGS.find((l) => l.code === lang)!;
 

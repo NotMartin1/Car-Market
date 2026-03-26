@@ -76,8 +76,8 @@ function ListingsPageInner() {
       getListings({
         make:        make.trim() || undefined,
         model:       model.trim() || undefined,
-        yearMin:     yearMin  ? Number(yearMin)  : undefined,
-        yearMax:     yearMax  ? Number(yearMax)  : undefined,
+        minYear:     yearMin  ? Number(yearMin)  : undefined,
+        maxYear:     yearMax  ? Number(yearMax)  : undefined,
         minPrice:    priceMin ? Number(priceMin) : undefined,
         maxPrice:    priceMax ? Number(priceMax) : undefined,
         location:    location.trim() || undefined,
