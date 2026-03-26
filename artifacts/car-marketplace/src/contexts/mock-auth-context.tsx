@@ -1,46 +1,28 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { CURRENT_USER, type MockUser } from "@/lib/mock-data";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import {
+  login as loginAction,
+  logout as logoutAction,
+  updateUser as updateUserAction,
+  openLoginModal,
+} from "@/store/slices/authSlice";
+import type { MockUser } from "@/lib/mock-data";
 
-interface AuthContextValue {
-  user: MockUser | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: () => void;
-  logout: () => void;
-  updateUser: (updates: Partial<MockUser>) => void;
+export function MockAuthProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+export function useMockAuth() {
+  const dispatch = useAppDispatch();
+  const user     = useAppSelector((s) => s.auth.user);
 
-export function MockAuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(CURRENT_USER);
-
-  const login = useCallback(() => setUser(CURRENT_USER), []);
-  const logout = useCallback(() => setUser(null), []);
-  const updateUser = useCallback((updates: Partial<MockUser>) => {
-    setUser((prev) => (prev ? { ...prev, ...updates } : prev));
-  }, []);
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: user !== null,
-        isLoading: false,
-        login,
-        logout,
-        updateUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-export function useMockAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useMockAuth must be used within MockAuthProvider");
-  return ctx;
+  return {
+    user,
+    isAuthenticated: user !== null,
+    isLoading: false,
+    login:      () => dispatch(openLoginModal()),
+    logout:     () => dispatch(logoutAction()),
+    updateUser: (updates: Partial<MockUser>) => dispatch(updateUserAction(updates)),
+  };
 }

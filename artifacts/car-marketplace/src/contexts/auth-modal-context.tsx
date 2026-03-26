@@ -1,38 +1,30 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import {
+  openLoginModal,
+  openRegisterModal,
+  closeModal,
+  switchModalTab,
+} from "@/store/slices/authSlice";
 
 type Tab = "login" | "register";
 
-interface AuthModalContextValue {
-  isOpen: boolean;
-  tab: Tab;
-  openLogin: () => void;
-  openRegister: () => void;
-  close: () => void;
-  switchTab: (t: Tab) => void;
+export function AuthModalProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
 
-const AuthModalContext = createContext<AuthModalContextValue | null>(null);
+export function useAuthModal() {
+  const dispatch = useAppDispatch();
+  const isOpen   = useAppSelector((s) => s.auth.modalOpen);
+  const tab      = useAppSelector((s) => s.auth.modalTab) as Tab;
 
-export function AuthModalProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [tab,    setTab]    = useState<Tab>("login");
-
-  const openLogin    = useCallback(() => { setTab("login");    setIsOpen(true); }, []);
-  const openRegister = useCallback(() => { setTab("register"); setIsOpen(true); }, []);
-  const close        = useCallback(() => setIsOpen(false), []);
-  const switchTab    = useCallback((t: Tab) => setTab(t), []);
-
-  return (
-    <AuthModalContext.Provider value={{ isOpen, tab, openLogin, openRegister, close, switchTab }}>
-      {children}
-    </AuthModalContext.Provider>
-  );
-}
-
-export function useAuthModal(): AuthModalContextValue {
-  const ctx = useContext(AuthModalContext);
-  if (!ctx) throw new Error("useAuthModal must be used within AuthModalProvider");
-  return ctx;
+  return {
+    isOpen,
+    tab,
+    openLogin:    () => dispatch(openLoginModal()),
+    openRegister: () => dispatch(openRegisterModal()),
+    close:        () => dispatch(closeModal()),
+    switchTab:    (t: Tab) => dispatch(switchModalTab(t)),
+  };
 }

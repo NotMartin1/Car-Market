@@ -3,9 +3,14 @@
 import { SlidersHorizontal, X, RotateCcw, Car, Bike, Truck, Bus, Ship, Caravan } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-
-type VehicleType = "car" | "suv" | "truck" | "motorcycle" | "van" | "rv" | "boat" | "other" | "";
-type Condition   = "excellent" | "good" | "fair" | "poor" | "";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  setMake, setModel, setYearMin, setYearMax,
+  setPriceMin, setPriceMax, setLocation,
+  setCondition, setVehicleType, clearFilters,
+  type VehicleType, type Condition,
+} from "@/store/slices/filtersSlice";
+import { useLanguage } from "@/contexts/language-context";
 
 const VEHICLE_TYPE_OPTIONS: { value: VehicleType; icon: React.ElementType }[] = [
   { value: "car",        icon: Car     },
@@ -40,57 +45,22 @@ function Divider() {
   return <div className="h-px bg-border" />;
 }
 
-export interface FilterPanelProps {
-  make: string;
-  model: string;
-  yearMin: string;
-  yearMax: string;
-  priceMin: string;
-  priceMax: string;
-  location: string;
-  condition: Condition;
-  vehicleType: VehicleType;
-  setMake: (v: string) => void;
-  setModel: (v: string) => void;
-  setYearMin: (v: string) => void;
-  setYearMax: (v: string) => void;
-  setPriceMin: (v: string) => void;
-  setPriceMax: (v: string) => void;
-  setLocation: (v: string) => void;
-  setCondition: (v: Condition) => void;
-  setVehicleType: (v: VehicleType) => void;
-  clearFilters: () => void;
-  activeCount: number;
-  fx: {
-    title: string;
-    vehicleType: string;
-    priceRange: string;
-    condition: string;
-    makeModel: string;
-    makePlaceholder: string;
-    modelPlaceholder: string;
-    yearRange: string;
-    from: string;
-    to: string;
-    location: string;
-    locationPlaceholder: string;
-    reset: string;
-    all: string;
-    excellent: string;
-    good: string;
-    fair: string;
-    poor: string;
-  };
-  getVehicleLabel: (v: VehicleType) => string;
-}
+export function FilterPanel() {
+  const dispatch = useAppDispatch();
+  const filters  = useAppSelector((s) => s.filters);
+  const { t }    = useLanguage();
+  const fx       = t.filters;
 
-export function FilterPanel({
-  make, model, yearMin, yearMax, priceMin, priceMax, location,
-  condition, vehicleType,
-  setMake, setModel, setYearMin, setYearMax, setPriceMin, setPriceMax, setLocation,
-  setCondition, setVehicleType,
-  clearFilters, activeCount, fx, getVehicleLabel,
-}: FilterPanelProps) {
+  const { make, model, yearMin, yearMax, priceMin, priceMax, location, condition, vehicleType } = filters;
+
+  const activeCount = [make, model, yearMin, yearMax, priceMin, priceMax, location, condition, vehicleType].filter(Boolean).length;
+
+  const getVehicleLabel = (v: VehicleType) => {
+    if (!v) return "";
+    const key = v as keyof typeof t.types;
+    return t.types[key] || v;
+  };
+
   const getConditionLabel = (v: Condition) => {
     const map: Record<string, string> = {
       excellent: fx.excellent,
@@ -105,11 +75,11 @@ export function FilterPanel({
     (p) => priceMin === String(p.min) && priceMax === String(p.max),
   );
 
-  const setPreset = (p: typeof PRICE_PRESETS[number]) => {
+  const togglePreset = (p: typeof PRICE_PRESETS[number]) => {
     if (activePricePreset?.label === p.label) {
-      setPriceMin(""); setPriceMax("");
+      dispatch(setPriceMin("")); dispatch(setPriceMax(""));
     } else {
-      setPriceMin(String(p.min)); setPriceMax(String(p.max));
+      dispatch(setPriceMin(String(p.min))); dispatch(setPriceMax(String(p.max)));
     }
   };
 
@@ -127,7 +97,7 @@ export function FilterPanel({
         </h3>
         {activeCount > 0 && (
           <button
-            onClick={clearFilters}
+            onClick={() => dispatch(clearFilters())}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
           >
             <RotateCcw className="w-3 h-3" /> {fx.reset}
@@ -143,11 +113,10 @@ export function FilterPanel({
         <div className="grid grid-cols-4 gap-1.5">
           {VEHICLE_TYPE_OPTIONS.map((vt) => {
             const active = vehicleType === vt.value;
-            const label  = getVehicleLabel(vt.value);
             return (
               <button
                 key={vt.value}
-                onClick={() => setVehicleType(active ? "" : vt.value)}
+                onClick={() => dispatch(setVehicleType(active ? "" : vt.value))}
                 className={cn(
                   "flex flex-col items-center gap-1 py-2 rounded-xl border text-xs font-semibold transition-all",
                   active
@@ -156,12 +125,12 @@ export function FilterPanel({
                 )}
               >
                 <vt.icon className="w-4 h-4" />
-                {label}
+                {getVehicleLabel(vt.value)}
               </button>
             );
           })}
           <button
-            onClick={() => setVehicleType("")}
+            onClick={() => dispatch(setVehicleType(""))}
             className={cn(
               "flex flex-col items-center gap-1 py-2 rounded-xl border text-xs font-semibold transition-all",
               vehicleType === ""
@@ -181,28 +150,25 @@ export function FilterPanel({
       <div>
         <FilterLabel>{fx.priceRange}</FilterLabel>
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {PRICE_PRESETS.map((p) => {
-            const active = activePricePreset?.label === p.label;
-            return (
-              <button
-                key={p.label}
-                onClick={() => setPreset(p)}
-                className={cn(
-                  "px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all",
-                  active
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background text-foreground/70 border-border hover:border-primary/40 hover:bg-muted",
-                )}
-              >
-                {p.label}
-              </button>
-            );
-          })}
+          {PRICE_PRESETS.map((p) => (
+            <button
+              key={p.label}
+              onClick={() => togglePreset(p)}
+              className={cn(
+                "px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all",
+                activePricePreset?.label === p.label
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-foreground/70 border-border hover:border-primary/40 hover:bg-muted",
+              )}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
         <div className="flex gap-2 items-center">
-          <Input type="number" placeholder="Min $" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} className="h-9 text-sm" />
+          <Input type="number" placeholder="Min $" value={priceMin} onChange={(e) => dispatch(setPriceMin(e.target.value))} className="h-9 text-sm" />
           <span className="text-muted-foreground text-sm shrink-0">–</span>
-          <Input type="number" placeholder="Max $" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} className="h-9 text-sm" />
+          <Input type="number" placeholder="Max $" value={priceMax} onChange={(e) => dispatch(setPriceMax(e.target.value))} className="h-9 text-sm" />
         </div>
       </div>
 
@@ -217,7 +183,7 @@ export function FilterPanel({
             return (
               <button
                 key={c.value}
-                onClick={() => setCondition(active ? "" : c.value)}
+                onClick={() => dispatch(setCondition(active ? "" : c.value))}
                 className={cn(
                   "px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all",
                   active
@@ -238,17 +204,17 @@ export function FilterPanel({
       <div className="space-y-2">
         <FilterLabel>{fx.makeModel}</FilterLabel>
         <div className="relative">
-          <Input placeholder={fx.makePlaceholder} value={make} onChange={(e) => setMake(e.target.value)} className="h-9 text-sm pr-7" />
+          <Input placeholder={fx.makePlaceholder} value={make} onChange={(e) => dispatch(setMake(e.target.value))} className="h-9 text-sm pr-7" />
           {make && (
-            <button onClick={() => setMake("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <button onClick={() => dispatch(setMake(""))} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
         <div className="relative">
-          <Input placeholder={fx.modelPlaceholder} value={model} onChange={(e) => setModel(e.target.value)} className="h-9 text-sm pr-7" />
+          <Input placeholder={fx.modelPlaceholder} value={model} onChange={(e) => dispatch(setModel(e.target.value))} className="h-9 text-sm pr-7" />
           {model && (
-            <button onClick={() => setModel("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <button onClick={() => dispatch(setModel(""))} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -261,9 +227,9 @@ export function FilterPanel({
       <div>
         <FilterLabel>{fx.yearRange}</FilterLabel>
         <div className="flex gap-2 items-center">
-          <Input type="number" placeholder={fx.from} value={yearMin} onChange={(e) => setYearMin(e.target.value)} className="h-9 text-sm" />
+          <Input type="number" placeholder={fx.from} value={yearMin} onChange={(e) => dispatch(setYearMin(e.target.value))} className="h-9 text-sm" />
           <span className="text-muted-foreground text-sm shrink-0">–</span>
-          <Input type="number" placeholder={fx.to}   value={yearMax} onChange={(e) => setYearMax(e.target.value)} className="h-9 text-sm" />
+          <Input type="number" placeholder={fx.to}   value={yearMax} onChange={(e) => dispatch(setYearMax(e.target.value))} className="h-9 text-sm" />
         </div>
       </div>
 
@@ -273,9 +239,9 @@ export function FilterPanel({
       <div>
         <FilterLabel>{fx.location}</FilterLabel>
         <div className="relative">
-          <Input placeholder={fx.locationPlaceholder} value={location} onChange={(e) => setLocation(e.target.value)} className="h-9 text-sm pr-7" />
+          <Input placeholder={fx.locationPlaceholder} value={location} onChange={(e) => dispatch(setLocation(e.target.value))} className="h-9 text-sm pr-7" />
           {location && (
-            <button onClick={() => setLocation("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <button onClick={() => dispatch(setLocation(""))} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="w-3.5 h-3.5" />
             </button>
           )}

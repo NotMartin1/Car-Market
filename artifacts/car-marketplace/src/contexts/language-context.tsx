@@ -1,30 +1,20 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { setLang } from "@/store/slices/languageSlice";
 import { translations, type Lang, type Translations } from "@/lib/translations";
 
-interface LanguageContextValue {
-  lang: Lang;
-  setLang: (l: Lang) => void;
-  t: Translations;
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
+export function useLanguage(): { lang: Lang; setLang: (l: Lang) => void; t: Translations } {
+  const dispatch = useAppDispatch();
+  const lang     = useAppSelector((s) => s.language.lang);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
-
-  const setLang = useCallback((l: Lang) => setLangState(l), []);
-
-  return (
-    <LanguageContext.Provider value={{ lang, setLang, t: translations[lang] }}>
-      {children}
-    </LanguageContext.Provider>
-  );
-}
-
-export function useLanguage(): LanguageContextValue {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
-  return ctx;
+  return {
+    lang,
+    setLang: (l: Lang) => dispatch(setLang(l)),
+    t:       translations[lang],
+  };
 }
